@@ -529,37 +529,37 @@ async function buildVillage(){
   if(location.protocol === 'file:'){ buildVillageFileFallback(); return; }
   // cabins
   const cabinSpots=[
-    [-.46,-.20,.24,0x0],[-.47,.13,.22,1.1],[.46,-.18,.24,-.5],[.43,.18,.21,.7],
-    [-.18,.40,.19,-.4],[.18,.42,.19,.4],[-.45,-.08,.20,.9]
+    [-.46,-.20,.12,0x0],[-.47,.13,.11,1.1],[.46,-.18,.12,-.5],[.43,.18,.105,.7],
+    [-.18,.40,.095,-.4],[.18,.42,.095,.4],[-.45,-.08,.10,.9]
   ];
   for(const [x,z,s,r] of cabinSpots){
     try{await buildCabin(northPole,x,z,s,r,0);}catch(e){addHouseFallback(x,z,s,null,r);}
   }
-  await buildFantasyCabin(northPole,.344,-.241,.20,-2.0,0);
+  await buildFantasyCabin(northPole,.344,-.241,.10,-2.0,0);
 
   const santa=mark(new THREE.Group(),...infos.santa); santa.position.set(-.05,0,-.02); northPole.add(santa);
-  await buildCabin(santa,0,0,.34,0,0);
+  await buildCabin(santa,0,0,.17,0,0);
   const santaTree=await addAsset("tree-decorated-snow.glb",santa,[.20,0,.03],.10,null,.2);
   santaTree.userData.info=infos.tree; clickable.push(santaTree);
 
   const factory=mark(new THREE.Group(),...infos.factory); factory.position.set(.42,0,-.02); northPole.add(factory);
-  await buildCabin(factory,0,0,.31,-.2,0);
+  await buildCabin(factory,0,0,.155,-.2,0);
   // factory chimneys and glowing windows
-  for(const x of [-.09,.09]){
+  for(const x of [-.045,.045]){
     const ch=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,.16,12),redMat);
-    ch.position.set(x,.42,0); factory.add(ch);
+    ch.position.set(x,.21,0); factory.add(ch);
   }
   for(let i=0;i<3;i++){
     const p=new THREE.Mesh(new THREE.BoxGeometry(.035,.035,.008),warmMat);
-    p.position.set(-.08+i*.08,.22,.155); factory.add(p);
+    p.position.set(-.04+i*.04,.11,.078); factory.add(p);
   }
 
   const elf=mark(new THREE.Group(),...infos.elves); elf.position.set(.02,0,-.40); northPole.add(elf);
-  await buildCabin(elf,0,0,.24,.4,0);
+  await buildCabin(elf,0,0,.12,.4,0);
   await addAsset("present-a-cube.glb",elf,[.12,.10,.12],.055,null,0);
 
   const gifts=mark(new THREE.Group(),...infos.gifts); gifts.position.set(-.34,0,-.39); northPole.add(gifts);
-  await buildCabin(gifts,0,0,.22,-.5,0);
+  await buildCabin(gifts,0,0,.11,-.5,0);
   for(let i=0;i<4;i++) await addAsset(i%2?"present-a-cube.glb":"present-a-cube.glb",gifts,[-.09+i*.06,.10,.11],.045,null,Math.random());
 
   const tree=mark(new THREE.Group(),...infos.tree); tree.position.set(.29,0,.31); northPole.add(tree);

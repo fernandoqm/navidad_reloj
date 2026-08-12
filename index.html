@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#071326" />
+  <meta name="description" content="Una visita interactiva al Polo Norte desde Costa Rica. Cuenta regresiva para Navidad, fábrica de Santa y una Tierra 3D girando." />
+  <title>Navidad desde Costa Rica · Aldea del Polo Norte</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="loading" class="loading">
+    <div class="loader-snow">❄</div>
+    <div>Preparando la fábrica de Santa...</div>
+  </div>
+
+  <div class="sky"></div>
+  <div id="stars"></div>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-star">★</span>
+      <div>
+        <strong>Aldea del Polo Norte</strong>
+        <small>Saludos desde Costa Rica 🇨🇷</small>
+      </div>
+    </div>
+
+    <div class="top-actions">
+      <button id="toggleAutoMessage" class="icon-btn" title="Activar/desactivar mensajes">💬</button>
+      <button id="toggleRotate" class="icon-btn" title="Pausar/reanudar la Tierra">🌎</button>
+      <button id="toggleInfo" class="icon-btn" title="Mostrar ayuda">?</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="earthScene" aria-label="Tierra 3D y Polo Norte">
+      <canvas id="earthCanvas"></canvas>
+
+      <div class="earth-glow"></div>
+
+      <div class="north-label">
+        <span class="pin">★</span>
+        <div>
+          <strong>POLO NORTE</strong>
+          <small>Centro de operaciones de Santa</small>
+        </div>
+      </div>
+
+      <div class="hotspot hotspot-reindeer" data-message="¡Los renos ya están en el gimnasio! Rudolph pidió vacaciones después de tres vueltas... pero nadie le aprobó el permiso.">
+        <span>🦌</span>
+        <b>Gimnasio</b>
+      </div>
+
+      <div class="hotspot hotspot-elves" data-message="Los elfos están fabricando juguetes a toda velocidad. Uno pidió café... y le dieron chocolate caliente. Problema resuelto.">
+        <span>🧝</span>
+        <b>Taller</b>
+      </div>
+
+      <div class="hotspot hotspot-factory" data-message="Fábrica de regalos: producción al 98%. La única máquina detenida fue la de envolver regalos... porque un elfo se quedó dormido encima.">
+        <span>🎁</span>
+        <b>Fábrica</b>
+      </div>
+
+      <div class="hotspot hotspot-santa" data-message="Santa está revisando la lista. Dice que en Costa Rica hay mucha gente esperando regalos... y también tamales. Está tomando nota.">
+        <span>🎅</span>
+        <b>Casa de Santa</b>
+      </div>
+
+      <div class="earth-hint">
+        <span>🖱️ Arrastra para explorar</span>
+        <span>•</span>
+        <span>La Tierra gira sola</span>
+      </div>
+    </section>
+
+    <aside class="dashboard">
+      <div class="country-pill">🇨🇷 CONEXIÓN DIRECTA · COSTA RICA</div>
+
+      <p class="eyebrow">FALTAN PARA</p>
+      <h1>NAVIDAD</h1>
+      <p class="subtitle">La magia ya comenzó en el Polo Norte.</p>
+
+      <div class="countdown" id="countdown">
+        <div class="time-box"><strong id="days">--</strong><span>DÍAS</span></div>
+        <div class="time-box"><strong id="hours">--</strong><span>HORAS</span></div>
+        <div class="time-box"><strong id="minutes">--</strong><span>MIN</span></div>
+        <div class="time-box"><strong id="seconds">--</strong><span>SEG</span></div>
+      </div>
+
+      <div class="message-card" id="messageCard">
+        <div class="message-icon" id="messageIcon">🎄</div>
+        <div>
+          <span class="message-title" id="messageTitle">Noticias de la fábrica</span>
+          <p id="messageText">Cargando el reporte de los elfos...</p>
+        </div>
+      </div>
+
+      <div class="status">
+        <div><span class="dot"></span> Fábrica funcionando</div>
+        <div>🎁 24/7</div>
+      </div>
+
+      <button id="nextMessage" class="magic-btn">✨ Ver otra noticia</button>
+
+      <div class="mini-note">
+        <strong>Dato del Polo Norte:</strong>
+        <span id="polarFact">Aquí nadie pregunta qué día es. Todos saben que se acerca Navidad.</span>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <span>Hecho con espíritu navideño desde Costa Rica 🇨🇷</span>
+    <span>•</span>
+    <span>Santa no confirmó ni negó nada. 🎅</span>
+  </footer>
+
+  <div id="infoPanel" class="info-panel hidden">
+    <button id="closeInfo" class="close-btn">×</button>
+    <h2>🎄 Bienvenido a la Aldea</h2>
+    <p>Explora la Tierra girando y busca los puntos luminosos del Polo Norte. Cada edificio tiene una historia.</p>
+    <p>En computadora puedes arrastrar para girar la cámara y usar la rueda para acercarte. En celular, desliza con el dedo.</p>
+    <p class="tip">🇨🇷 La cuenta regresiva usa la hora de Costa Rica (UTC−6).</p>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

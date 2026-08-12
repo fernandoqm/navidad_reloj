@@ -884,7 +884,7 @@ function animate(){
     const loco=tr.userData.loco;
     const a=t*.55;
     loco.position.set(Math.cos(a)*.60,.12,Math.sin(a)*.60);
-    loco.rotation.y=-a+Math.PI/2;
+    loco.rotation.y=-a-Math.PI/2;
   }
   animateShootingStars(t);
   updateBeacon(t);

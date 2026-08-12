@@ -206,6 +206,38 @@ const atmosphere = new THREE.Mesh(
 );
 earthGroup.add(atmosphere);
 
+// Costa Rica signal beacon: a small blinking light + expanding radar ring
+// pinned to the globe at Costa Rica's real coordinates (San José ~9.93N, -84.08W).
+// Standard equirectangular convention: texture U=0.5 at lon 0, U increasing eastward;
+// V=1 (top of image) at the north pole.
+function latLonToVector3(lat, lon, radius){
+  const theta=(90-lat)*Math.PI/180;
+  const phi=(0.5+lon/360)*Math.PI*2;
+  return new THREE.Vector3(
+    -radius*Math.cos(phi)*Math.sin(theta),
+    radius*Math.cos(theta),
+    radius*Math.sin(phi)*Math.sin(theta)
+  );
+}
+const beacon=new THREE.Group();
+beacon.position.copy(latLonToVector3(9.93,-84.08,1.46));
+beacon.lookAt(0,0,0);
+const beaconCore=new THREE.Mesh(new THREE.SphereGeometry(.026,16,12),new THREE.MeshBasicMaterial({color:0xff5b3d}));
+beacon.add(beaconCore);
+const beaconRing=new THREE.Mesh(new THREE.RingGeometry(.03,.045,28),new THREE.MeshBasicMaterial({color:0xff5b3d,transparent:true,opacity:.5,side:THREE.DoubleSide,depthWrite:false}));
+beacon.add(beaconRing);
+const beaconLight=new THREE.PointLight(0xff6a45,0,.6);
+beacon.add(beaconLight);
+earthGroup.add(beacon);
+function updateBeacon(t){
+  const cycle=1.6, p=(t%cycle)/cycle;
+  const flash=p<.12?1:(p<.30?1-(p-.12)/.18:.08);
+  beaconCore.scale.setScalar(.8+flash*.45);
+  beaconLight.intensity=flash*1.5;
+  beaconRing.scale.setScalar(1+p*3);
+  beaconRing.material.opacity=Math.max(0,.55*(1-p));
+}
+
 // Star field - deliberately behind the Earth.
 const starGeo = new THREE.BufferGeometry();
 const starCount = 2200;
@@ -390,6 +422,27 @@ function buildVillageFileFallback(){
   const loco=new THREE.Group();loco.add(box(.13,.08,.07,wallRed,.18));const cab=box(.07,.09,.07,wallBlue,.25);cab.position.x=-.04;loco.add(cab);const stack=new THREE.Mesh(new THREE.CylinderGeometry(.018,.022,.06,10),dark);stack.position.set(.045,.25,0);loco.add(stack);loco.userData.info=infos.train;clickable.push(loco);train.add(loco);train.userData.loco=loco;
 
   for(let i=0;i<6;i++){const a=i*Math.PI/3;const lamp=new THREE.Group();const pole=new THREE.Mesh(new THREE.CylinderGeometry(.008,.012,.16,8),woodMat);pole.position.y=.15;lamp.add(pole);const light=new THREE.Mesh(new THREE.SphereGeometry(.025,12,8),warmMat);light.position.y=.25;lamp.add(light);lamp.position.set(Math.cos(a)*.52,0,Math.sin(a)*.52);northPole.add(lamp);}
+
+  // Extra scenery so the ground isn't a flat white disc.
+  const rockMat=new THREE.MeshStandardMaterial({color:0x8a8f94,roughness:.95});
+  for(const [x,z,s] of [[-.60,-.06,.9],[.58,-.30,.8],[-.30,.55,.85],[.50,.48,.75],[-.60,.42,.7],[.66,-.02,.8]]){
+    const pile=new THREE.Mesh(new THREE.SphereGeometry(.09*s,12,8),snowMat);pile.scale.y=.55;pile.position.set(x,.04*s,z);northPole.add(pile);
+  }
+  for(const [x,z,s] of [[-.55,.02,.09],[.32,-.45,.07],[-.22,-.30,.08],[.55,.30,.1]]){
+    const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(s,0),rockMat);rock.position.set(x,s*.5,z);rock.rotation.set(Math.random(),Math.random(),Math.random());northPole.add(rock);
+  }
+  const wreath=new THREE.Mesh(new THREE.TorusGeometry(.045,.011,8,20),roofGreen);wreath.position.set(0,.30,.17);santa.add(wreath);
+  const bench=new THREE.Group();
+  bench.add(box(.16,.03,.05,woodMat,.10));
+  const legL=box(.02,.10,.04,woodMat,.05);legL.position.x=-.06;bench.add(legL);
+  const legR=legL.clone();legR.position.x=.06;bench.add(legR);
+  bench.position.set(.10,0,-.15);bench.rotation.y=1.0;northPole.add(bench);
+  const lanternPole=new THREE.Mesh(new THREE.CylinderGeometry(.006,.006,.20,8),woodMat);lanternPole.position.set(.60,.10,.10);northPole.add(lanternPole);
+  const lanternGlow=new THREE.Mesh(new THREE.SphereGeometry(.03,10,8),warmMat);lanternGlow.position.set(.60,.02,.10);northPole.add(lanternGlow);
+  const snowflakeMat=new THREE.MeshBasicMaterial({color:0xeaf6ff});
+  const sf1=new THREE.Mesh(new THREE.OctahedronGeometry(.035,0),snowflakeMat);sf1.position.set(-.62,.35,-.30);northPole.add(sf1);
+  const sf2=new THREE.Mesh(new THREE.OctahedronGeometry(.032,0),snowflakeMat);sf2.position.set(.60,.32,-.32);northPole.add(sf2);
+
   const tower=mark(new THREE.Group(),"⭐","Torre de la Estrella","La torre coordina todas las operaciones. Si la estrella parpadea tres veces, significa que la Navidad está muy cerca.");tower.position.set(.03,0,.05);northPole.add(tower);
   const tb=box(.10,.38,.10,goldMat,.28);tower.add(tb);const tr=cone(.095,.15,roofRed,.55);tower.add(tr);const st=new THREE.Mesh(new THREE.OctahedronGeometry(.055),new THREE.MeshBasicMaterial({color:0xffd65b}));st.position.y=.68;tower.add(st);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(.50,.006,8,80),new THREE.MeshBasicMaterial({color:0xffd65b,transparent:true,opacity:.65}));ring.rotation.x=Math.PI/2;ring.position.y=.72;northPole.add(ring);northPole.userData.ring=ring;northPole.userData.train=train;
@@ -480,6 +533,20 @@ async function buildVillage(){
     const light=new THREE.Mesh(new THREE.SphereGeometry(.025,12,8),warmMat); light.position.y=.25; lamp.add(light);
     lamp.position.set(Math.cos(a)*.52,0,Math.sin(a)*.52); northPole.add(lamp);
   }
+
+  // Extra scenery so the ground isn't a flat white disc: snow mounds, rocks,
+  // a wreath, a bench and a hanging lantern near the gate.
+  const snowPileSpots=[[-.60,-.06,.9,.2],[.58,-.30,.8,-.4],[-.30,.55,.85,.6],[.50,.48,.75,-.2],[-.60,.42,.7,1.1],[.66,-.02,.8,.5]];
+  for(const [x,z,s,r] of snowPileSpots){ await addAsset("snow-pile.glb",northPole,[x,0,z],s*.16,null,r); }
+
+  const rockSpots=[[-.55,.02,.14,.3],[.32,-.45,.12,1.4],[-.22,-.30,.13,.7],[.55,.30,.15,-.5]];
+  for(let i=0;i<rockSpots.length;i++){ const [x,z,s,r]=rockSpots[i]; await addAsset(i%2?"rocks-medium.glb":"rocks-small.glb",northPole,[x,0,z],s,null,r); }
+
+  await addAsset("snowflake-a.glb",northPole,[-.62,.35,-.30],.10,null,.4);
+  await addAsset("snowflake-b.glb",northPole,[.60,.32,-.32],.09,null,-.3);
+  await addAsset("wreath.glb",santa,[0,.30,.17],.09,null,0);
+  await addAsset("bench-short.glb",northPole,[.10,0,-.15],.16,null,1.0);
+  await addAsset("lantern-hanging.glb",northPole,[.60,.14,.10],.13,null,0);
 
   // central tower made from primitives
   const tower=mark(new THREE.Group(),"⭐","Torre de la Estrella","La torre coordina todas las operaciones de la aldea. Si la estrella parpadea tres veces, significa que la Navidad está muy cerca.");
@@ -704,6 +771,7 @@ function animate(){
     loco.rotation.y=-a+Math.PI/2;
   }
   animateShootingStars(t);
+  updateBeacon(t);
   controls.update();
   renderer.render(scene,camera);
   updateOverlays();

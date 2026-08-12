@@ -86,6 +86,8 @@ window.addEventListener("error", function(e){
       <div class="chat-bubble chat-bubble-b2" id="chatBubbleB2"></div>
       <div class="chat-bubble chat-bubble-c" id="chatBubbleC"></div>
       <div class="chat-bubble chat-bubble-c2" id="chatBubbleC2"></div>
+
+      <div class="trivia-bubble" id="triviaBubble"></div>
     </section>
 
     <aside class="dashboard">
@@ -747,6 +749,59 @@ const hotspotFacts={
     "El silbato del tren se escucha en toda la aldea. Es la señal oficial de que ya casi es Navidad."
   ]
 };
+// Real trivia about each character/icon (not jokes), shown in a "pop"
+// bubble right above the icon that was clicked, for the same visible
+// duration as the auto-playing conversation bubbles (6.6s).
+const triviaFacts={
+  reindeer:[
+    "A los renos también se les llama «caribú» en Norteamérica: son la misma especie.",
+    "Los renos son los únicos ciervos en los que tanto machos como hembras tienen astas.",
+    "Sus pezuñas cambian de forma según la estación para agarrarse mejor en nieve o barro.",
+    "Los ojos de los renos cambian de color entre estaciones: dorados en verano, azules en invierno."
+  ],
+  elves:[
+    "En el folclore nórdico, los elfos navideños vienen del «tomte» o «nisse», un duende guardián del hogar.",
+    "La imagen moderna del elfo ayudante de Santa se popularizó en Estados Unidos en el siglo XIX.",
+    "En algunos países escandinavos se les deja un tazón de avena la noche antes de Navidad."
+  ],
+  factory:[
+    "Envolver los regalos es una tradición que busca guardar la sorpresa hasta el último momento.",
+    "El papel de regalo moderno se popularizó en 1917, cuando una tienda usó papel decorado en vez de papel simple.",
+    "En Japón existe el «furoshiki»: envolver regalos con tela reutilizable en vez de papel."
+  ],
+  santa:[
+    "A Santa Claus también se le conoce como San Nicolás, Papá Noel, Kris Kringle o Sinterklaas, según el país.",
+    "El personaje se inspira en San Nicolás de Mira, un obispo del siglo IV conocido por su generosidad.",
+    "En Costa Rica y otros países de tradición católica, quien trae los regalos también puede ser el Niño Dios."
+  ],
+  tree:[
+    "La tradición del árbol de Navidad decorado se originó en Alemania en el siglo XVI.",
+    "Antes de las luces eléctricas, los árboles se decoraban con velas reales.",
+    "El árbol de Navidad más alto del mundo registrado midió más de 67 metros."
+  ],
+  train:[
+    "Los trenes de juguete son uno de los regalos navideños más populares desde finales del siglo XIX.",
+    "El primer tren eléctrico de juguete comercial apareció a inicios del siglo XX.",
+    "Poner un tren de juguete rodeando el árbol de Navidad es una tradición muy extendida en Estados Unidos."
+  ]
+};
+function showTriviaBubble(el,key){
+  const pool=triviaFacts[key];
+  if(!pool) return;
+  const fact=pool[Math.floor(Math.random()*pool.length)];
+  const scene=document.getElementById("earthScene");
+  const sceneRect=scene.getBoundingClientRect();
+  const elRect=el.getBoundingClientRect();
+  const leftPct=((elRect.left+elRect.width/2-sceneRect.left)/sceneRect.width)*100;
+  const topPct=((elRect.top-sceneRect.top)/sceneRect.height)*100;
+  const bubble=document.getElementById("triviaBubble");
+  bubble.style.left=leftPct+"%";
+  bubble.style.top=topPct+"%";
+  bubble.textContent="💡 "+fact;
+  bubble.classList.add("show");
+  clearTimeout(bubble._hideTimer);
+  bubble._hideTimer=setTimeout(()=>bubble.classList.remove("show"),6600);
+}
 document.querySelectorAll(".hotspot").forEach(el=>{
   const key=[...el.classList].find(c=>c.startsWith("hotspot-"))?.replace("hotspot-","");
   el.addEventListener("click",()=>{
@@ -756,6 +811,7 @@ document.querySelectorAll(".hotspot").forEach(el=>{
     document.getElementById("messageTitle").textContent=el.dataset.title||"Información";
     document.getElementById("messageText").textContent=text;
     showToast(`${el.querySelector("span").textContent} Información del Polo Norte`);
+    showTriviaBubble(el,key);
   });
 });
 

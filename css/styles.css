@@ -284,6 +284,41 @@ main {
 .chat-bubble-c { left: 34%; top: 76%; }
 .chat-bubble-c2 { left: 48%; top: 82%; }
 
+.trivia-bubble {
+  position: absolute;
+  z-index: 8;
+  max-width: 210px;
+  padding: 9px 13px;
+  border-radius: 14px;
+  background: rgba(18, 9, 3, .95);
+  border: 1px solid var(--gold);
+  color: var(--gold-soft);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 11px;
+  line-height: 1.4;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0,0,0,.45), 0 0 18px rgba(244,201,93,.22);
+  opacity: 0;
+  transform: translate(-50%, -100%) scale(.7);
+  transition: opacity .35s ease, transform .35s cubic-bezier(.34, 1.56, .64, 1);
+  pointer-events: none;
+}
+
+.trivia-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: var(--gold);
+}
+
+.trivia-bubble.show {
+  opacity: 1;
+  transform: translate(-50%, calc(-100% - 10px)) scale(1);
+}
+
 .earth-hint {
   position: absolute;
   bottom: 18px;
@@ -621,6 +656,7 @@ footer {
   .hotspot-train { left: 50%; top: 66%; }
 
   .chat-bubble { max-width: 130px; font-size: 9px; padding: 6px 9px; }
+  .trivia-bubble { max-width: 150px; font-size: 9px; padding: 6px 9px; }
   .chat-bubble-a { left: 14%; top: 26%; }
   .chat-bubble-a2 { left: 28%; top: 32%; }
   .chat-bubble-b { left: 72%; top: 48%; }

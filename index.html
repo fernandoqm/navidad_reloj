@@ -81,8 +81,11 @@ window.addEventListener("error", function(e){
       </div>
 
       <div class="chat-bubble chat-bubble-a" id="chatBubbleA"></div>
+      <div class="chat-bubble chat-bubble-a2" id="chatBubbleA2"></div>
       <div class="chat-bubble chat-bubble-b" id="chatBubbleB"></div>
+      <div class="chat-bubble chat-bubble-b2" id="chatBubbleB2"></div>
       <div class="chat-bubble chat-bubble-c" id="chatBubbleC"></div>
+      <div class="chat-bubble chat-bubble-c2" id="chatBubbleC2"></div>
     </section>
 
     <aside class="dashboard">
@@ -791,33 +794,36 @@ const polarFacts=[
 let fact=0;
 setInterval(()=>{fact++;document.getElementById("polarFact").textContent=polarFacts[fact%polarFacts.length]},6000);
 
+// Each entry is [firstLine, replyLine] so a conversation shows as two
+// separate, nearby speech bubbles instead of one bubble with both
+// characters' lines crammed together.
 const chatLines=[
-  "🧝 «¿Otra vez galletas de desayuno?» 🎅 «Es tradición.»",
-  "🦌 «Rudolph, bájale a la velocidad.» 🦌 «Jamás.»",
-  "☃️ «¿Alguien vio mi nariz?» 🧝 «Está en la ensalada.»",
-  "🧝 «Turno doble hoy.» 🧝 «Otra vez no…»",
-  "🎅 «¿Ya envolviste los regalos?» 🧝 «\"Envolver\" es un término amplio.»",
-  "🧝 «Le puse chocolate al café de Santa.» 🧝 «Eso explica el abrazo.»",
-  "🦌 «¿Practicamos el aterrizaje?» 🦌 «Prefiero improvisar.»",
-  "🧝 «El elfo nuevo cree que Excel es magia negra.» 🧝 «Tiene razón.»",
-  "☃️ «Hace frío.» 🧝 «Eres de nieve.» ☃️ «Aun así.»",
-  "🎅 «¿Costa Rica confirmó los tamales?» 🧝 «Investigación en curso.»",
-  "🧝 «¿Quién dejó galletas a medio comer?» 🦌 «Fue el reno.» 🦌 «Mentira.»",
-  "🎅 «Necesito más café.» 🧝 «Necesitas más elfos.»",
-  "🧝 «Hay alguien en la lista que ama tanto los libros que Santa cree que vive en una biblioteca.» 🎅 «No diré quién… pero ya reservé un trineo extra solo para eso.»",
-  "🎅 «¿Ya cargamos el trineo con café de Costa Rica?» 🧝 «Va antes que los juguetes.»",
-  "🧝 «Santa aprendió a decir 'pura vida'.» 🦌 «Ahora lo dice para todo.»",
-  "🧝 «La biblioteca del taller creció otra vez.» 🎅 «Alguien en la lista lo va a agradecer mucho.»",
-  "🧝 «¿Otro libro en la lista de regalos?» 🧝 «El quinto esta semana.»",
-  "🧝 «La magia navideña se mide en litros de chocolate caliente.» 🎅 «Confirmado por ciencia élfica.»",
-  "☃️ «Sentí magia en el aire.» 🧝 «Era canela, pero la magia también cuenta.»",
-  "🦌 «Reto de baloncesto: renos contra elfos.» 🧝 «Ustedes vuelan, no es justo.»",
-  "🧝 «Santa anotó desde la chimenea.» 🎅 «Eso cuenta triple.»"
+  ["🧝 «¿Otra vez galletas de desayuno?»","🎅 «Es tradición.»"],
+  ["🦌 «Rudolph, bájale a la velocidad.»","🦌 «Jamás.»"],
+  ["☃️ «¿Alguien vio mi nariz?»","🧝 «Está en la ensalada.»"],
+  ["🧝 «Turno doble hoy.»","🧝 «Otra vez no…»"],
+  ["🎅 «¿Ya envolviste los regalos?»","🧝 «\"Envolver\" es un término amplio.»"],
+  ["🧝 «Le puse chocolate al café de Santa.»","🧝 «Eso explica el abrazo.»"],
+  ["🦌 «¿Practicamos el aterrizaje?»","🦌 «Prefiero improvisar.»"],
+  ["🧝 «El elfo nuevo cree que Excel es magia negra.»","🧝 «Tiene razón.»"],
+  ["☃️ «Hace frío.»","🧝 «Eres de nieve.» ☃️ «Aun así.»"],
+  ["🎅 «¿Costa Rica confirmó los tamales?»","🧝 «Investigación en curso.»"],
+  ["🧝 «¿Quién dejó galletas a medio comer?»","🦌 «Fue el reno.» 🦌 «Mentira.»"],
+  ["🎅 «Necesito más café.»","🧝 «Necesitas más elfos.»"],
+  ["🧝 «Hay alguien en la lista que ama tanto los libros que Santa cree que vive en una biblioteca.»","🎅 «No diré quién… pero ya reservé un trineo extra solo para eso.»"],
+  ["🎅 «¿Ya cargamos el trineo con café de Costa Rica?»","🧝 «Va antes que los juguetes.»"],
+  ["🧝 «Santa aprendió a decir 'pura vida'.»","🦌 «Ahora lo dice para todo.»"],
+  ["🧝 «La biblioteca del taller creció otra vez.»","🎅 «Alguien en la lista lo va a agradecer mucho.»"],
+  ["🧝 «¿Otro libro en la lista de regalos?»","🧝 «El quinto esta semana.»"],
+  ["🧝 «La magia navideña se mide en litros de chocolate caliente.»","🎅 «Confirmado por ciencia élfica.»"],
+  ["☃️ «Sentí magia en el aire.»","🧝 «Era canela, pero la magia también cuenta.»"],
+  ["🦌 «Reto de baloncesto: renos contra elfos.»","🧝 «Ustedes vuelan, no es justo.»"],
+  ["🧝 «Santa anotó desde la chimenea.»","🎅 «Eso cuenta triple.»"]
 ];
-const chatBubbles=[
-  document.getElementById("chatBubbleA"),
-  document.getElementById("chatBubbleB"),
-  document.getElementById("chatBubbleC")
+const chatPairs=[
+  [document.getElementById("chatBubbleA"),document.getElementById("chatBubbleA2")],
+  [document.getElementById("chatBubbleB"),document.getElementById("chatBubbleB2")],
+  [document.getElementById("chatBubbleC"),document.getElementById("chatBubbleC2")]
 ];
 
 // Hotspots and chat bubbles both sit at fixed spots (set in CSS, lower in
@@ -826,14 +832,23 @@ const chatBubbles=[
 
 let lastChatLine=-1;
 function popChatBubble(){
-  const bubble=chatBubbles[Math.floor(Math.random()*chatBubbles.length)];
+  const [first,reply]=chatPairs[Math.floor(Math.random()*chatPairs.length)];
   let idx=Math.floor(Math.random()*chatLines.length);
   if(idx===lastChatLine) idx=(idx+1)%chatLines.length;
   lastChatLine=idx;
-  bubble.textContent=chatLines[idx];
-  bubble.classList.add("show");
-  clearTimeout(bubble._hideTimer);
-  bubble._hideTimer=setTimeout(()=>bubble.classList.remove("show"),6600);
+  const [firstLine,replyLine]=chatLines[idx];
+  first.textContent=firstLine;
+  first.classList.add("show");
+  clearTimeout(first._hideTimer);
+  first._hideTimer=setTimeout(()=>first.classList.remove("show"),6600);
+
+  clearTimeout(reply._showTimer);
+  reply._showTimer=setTimeout(()=>{
+    reply.textContent=replyLine;
+    reply.classList.add("show");
+    clearTimeout(reply._hideTimer);
+    reply._hideTimer=setTimeout(()=>reply.classList.remove("show"),6200);
+  },500);
 }
 setInterval(popChatBubble,7000);
 setTimeout(popChatBubble,1500);

@@ -577,6 +577,23 @@ async function buildVillage(){
   await addAsset("bench-short.glb",northPole,[.10,0,-.15],.16,null,1.0);
   await addAsset("lantern-hanging.glb",northPole,[.60,.14,.10],.13,null,0);
 
+  // More variety from the Fantasy Town Kit and Platformer Kit, mixed in as
+  // standalone decoration. Their own colormap textures live in
+  // assets/fantasy/Textures and assets/platformer/Textures so they don't
+  // clash with the holiday-kit colormap the rest of the village uses.
+  await addAsset("fantasy/fountain-round.glb",northPole,[-.537,0,-.310],.13,null,0);
+  await addAsset("fantasy/fountain-round-detail.glb",northPole,[-.537,.09,-.310],.10,null,0);
+  await addAsset("fantasy/stall.glb",northPole,[.155,0,.580],.14,null,-.6);
+  await addAsset("fantasy/stall-red.glb",northPole,[-.048,0,.548],.13,null,.4);
+  await addAsset("fantasy/banner-red.glb",northPole,[.60,.18,.16],.12,null,-.3);
+  await addAsset("fantasy/banner-green.glb",northPole,[-.60,.18,.16],.12,null,.3);
+  await addAsset("fantasy/rock-large.glb",northPole,[-.150,0,-.560],.15,null,.8);
+  await addAsset("fantasy/cart.glb",northPole,[.670,0,-.118],.13,null,-.9);
+  await addAsset("platformer/sign.glb",northPole,[0,0,.66],.12,null,Math.PI);
+  await addAsset("platformer/flag.glb",northPole,[.15,0,.64],.09,null,0);
+  await addAsset("platformer/mushrooms.glb",northPole,[.48,0,.50],.09,null,0);
+  await addAsset("platformer/rocks.glb",northPole,[.475,0,-.399],.13,null,1.2);
+
   // central tower made from primitives
   const tower=mark(new THREE.Group(),"⭐","Torre de la Estrella","La torre coordina todas las operaciones de la aldea. Si la estrella parpadea tres veces, significa que la Navidad está muy cerca.");
   tower.position.set(.03,0,.05); northPole.add(tower);
@@ -692,7 +709,15 @@ const chatLines=[
   "🎅 «¿Costa Rica confirmó los tamales?» 🧝 «Investigación en curso.»",
   "🧝 «¿Quién dejó galletas a medio comer?» 🦌 «Fue el reno.» 🦌 «Mentira.»",
   "🎅 «Necesito más café.» 🧝 «Necesitas más elfos.»",
-  "🧝 «Hay alguien en la lista que ama tanto los libros que Santa cree que vive en una biblioteca.» 🎅 «No diré quién… pero ya reservé un trineo extra solo para eso.»"
+  "🧝 «Hay alguien en la lista que ama tanto los libros que Santa cree que vive en una biblioteca.» 🎅 «No diré quién… pero ya reservé un trineo extra solo para eso.»",
+  "🎅 «¿Ya cargamos el trineo con café de Costa Rica?» 🧝 «Va antes que los juguetes.»",
+  "🧝 «Santa aprendió a decir 'pura vida'.» 🦌 «Ahora lo dice para todo.»",
+  "🧝 «La biblioteca del taller creció otra vez.» 🎅 «Alguien en la lista lo va a agradecer mucho.»",
+  "🧝 «¿Otro libro en la lista de regalos?» 🧝 «El quinto esta semana.»",
+  "🧝 «La magia navideña se mide en litros de chocolate caliente.» 🎅 «Confirmado por ciencia élfica.»",
+  "☃️ «Sentí magia en el aire.» 🧝 «Era canela, pero la magia también cuenta.»",
+  "🦌 «Reto de baloncesto: renos contra elfos.» 🧝 «Ustedes vuelan, no es justo.»",
+  "🧝 «Santa anotó desde la chimenea.» 🎅 «Eso cuenta triple.»"
 ];
 const chatBubbles=[
   document.getElementById("chatBubbleA"),
@@ -700,63 +725,9 @@ const chatBubbles=[
   document.getElementById("chatBubbleC")
 ];
 
-// Hotspots are pinned to real lat/lon points scattered across the globe
-// (same technique as the Costa Rica beacon below) instead of the village's
-// own tiny footprint, so they read as "info pins over the world" and don't
-// pile up on top of each other. They rotate with the world and hide when
-// their point turns to the far side of the globe.
-// Chat bubbles are deliberately NOT 3D-anchored: they sit at fixed spots
-// around the globe so they're always visible, even when the village
-// itself has rotated out of view.
-const earthSceneEl=document.getElementById("earthScene");
-const hotspotMap={
-  reindeer:document.querySelector(".hotspot-reindeer"),
-  elves:document.querySelector(".hotspot-elves"),
-  factory:document.querySelector(".hotspot-factory"),
-  santa:document.querySelector(".hotspot-santa"),
-  tree:document.querySelector(".hotspot-tree"),
-  train:document.querySelector(".hotspot-train")
-};
-const hotspotCoords={
-  reindeer:[67,27],   // Laponia, Finlandia
-  elves:[72,-40],     // Groenlandia
-  factory:[70,-100],  // norte de Canadá
-  santa:[78,16],      // Svalbard, Noruega
-  tree:[65,-18],      // Islandia
-  train:[66,100]      // Siberia, Rusia
-};
-const hotspotAnchors={};
-for(const key in hotspotCoords){
-  const anchor=new THREE.Object3D();
-  anchor.position.copy(latLonToVector3(hotspotCoords[key][0],hotspotCoords[key][1],1.46));
-  earthGroup.add(anchor);
-  hotspotAnchors[key]=anchor;
-}
-
-function projectLandmark(obj3D,rect){
-  const world=new THREE.Vector3();
-  obj3D.getWorldPosition(world);
-  const ndc=world.clone().project(camera);
-  const outward=world.clone().normalize();
-  const toCam=camera.position.clone().sub(world).normalize();
-  return{
-    x:(ndc.x*.5+.5)*rect.width,
-    y:(1-(ndc.y*.5+.5))*rect.height,
-    visible: ndc.z<1 && outward.dot(toCam)>.05
-  };
-}
-
-function updateOverlays(){
-  const rect=earthSceneEl.getBoundingClientRect();
-  for(const key in hotspotMap){
-    const el=hotspotMap[key], anchor=hotspotAnchors[key];
-    if(!el||!anchor) continue;
-    const p=projectLandmark(anchor,rect);
-    el.style.left=p.x+"px";
-    el.style.top=p.y+"px";
-    el.style.visibility=p.visible?"visible":"hidden";
-  }
-}
+// Hotspots and chat bubbles both sit at fixed spots (set in CSS, lower in
+// the frame, below the village) instead of being 3D-anchored, so they're
+// always visible and never overlap the village or each other.
 
 let lastChatLine=-1;
 function popChatBubble(){
@@ -767,9 +738,9 @@ function popChatBubble(){
   bubble.textContent=chatLines[idx];
   bubble.classList.add("show");
   clearTimeout(bubble._hideTimer);
-  bubble._hideTimer=setTimeout(()=>bubble.classList.remove("show"),3400);
+  bubble._hideTimer=setTimeout(()=>bubble.classList.remove("show"),5600);
 }
-setInterval(popChatBubble,3900);
+setInterval(popChatBubble,6200);
 setTimeout(popChatBubble,1500);
 
 function countdown(){
@@ -825,7 +796,6 @@ function animate(){
   updateCamAnim();
   controls.update();
   renderer.render(scene,camera);
-  updateOverlays();
 }
 animate();
 

@@ -233,6 +233,15 @@ main {
   border-color: var(--gold);
 }
 
+/* Fixed spots below the village, spread out so they never overlap each
+   other or the village itself. */
+.hotspot-reindeer { left: 12%; top: 56%; }
+.hotspot-elves { left: 30%; top: 82%; }
+.hotspot-factory { left: 50%; top: 58%; }
+.hotspot-santa { left: 68%; top: 82%; }
+.hotspot-tree { left: 86%; top: 58%; }
+.hotspot-train { left: 50%; top: 68%; }
+
 .chat-bubble {
   position: absolute;
   z-index: 6;
@@ -601,10 +610,12 @@ footer {
 
   .hotspot b { display: none; }
 
-  .hotspot-reindeer { left: 53%; top: 25%; }
-  .hotspot-elves { left: 66%; top: 36%; }
-  .hotspot-factory { left: 69%; top: 48%; }
-  .hotspot-santa { left: 44%; top: 37%; }
+  .hotspot-reindeer { left: 10%; top: 54%; }
+  .hotspot-elves { left: 28%; top: 80%; }
+  .hotspot-factory { left: 50%; top: 56%; }
+  .hotspot-santa { left: 66%; top: 80%; }
+  .hotspot-tree { left: 84%; top: 56%; }
+  .hotspot-train { left: 50%; top: 66%; }
 
   .chat-bubble { max-width: 130px; font-size: 9px; padding: 6px 9px; }
   .chat-bubble-a { left: 18%; top: 26%; }
@@ -631,16 +642,7 @@ footer {
   .eyebrow { font-size: 13px; }
 }
 
-/* Villa 5 information markers */
-.hotspot { border-color: rgba(244,201,93,.8); background: rgba(6,16,28,.86); box-shadow: 0 0 22px rgba(244,201,93,.18); cursor:pointer; }
-.hotspot:hover { transform: translateY(-2px) scale(1.04); }
 .hotspot b { color: var(--gold-soft); letter-spacing: .9px; }
-.hotspot-tree { left: 78%; top: 27%; }
-.hotspot-train { left: 74%; top: 61%; }
-@media (max-width: 650px) {
-  .hotspot-tree { left: 76%; top: 28%; }
-  .hotspot-train { left: 73%; top: 61%; }
-}
 #earthScene::after {
   content: "✦ VILLA DEL POLO NORTE ✦";
   position:absolute; left:50%; bottom:46px; transform:translateX(-50%);

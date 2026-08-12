@@ -504,7 +504,9 @@ async function buildCabin(parent,x,z,scale,rot=0,doorSide=0){
     const wallFile=side===doorSide?"cabin-doorway.glb":"cabin-wall.glb";
     await addAsset(wallFile,group,[0,0,0],scale,null,side*Math.PI/2);
   }
-  await addAsset("cabin-roof-snow-point.glb",group,[0,scale,0],scale,null,0);
+  // cabin-roof-snow-point.glb is natively ~60% bigger than the 1x1 wall
+  // footprint, so it needs its own smaller scale to sit proportionately.
+  await addAsset("cabin-roof-snow-point.glb",group,[0,scale,0],scale*.64,null,0);
   return group;
 }
 

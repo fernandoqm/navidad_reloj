@@ -490,6 +490,39 @@ const infos={
  sled:["🛷","Pista de trineos","El equipo de logística está probando rutas. Santa pidió que nadie vuelva a estacionar el trineo frente a la fábrica."]
 };
 
+// Assembles a real 4-walled cabin (cabin-wall-roof.glb is just a single flat
+// wall panel with a roof cap, not a full building) from the Holiday Kit's
+// modular pieces: one wall per side (one of them a doorway) plus a
+// symmetric pointed roof on top, all sharing one pivot so rotating each
+// wall 90° around it naturally closes the box.
+async function buildCabin(parent,x,z,scale,rot=0,doorSide=0){
+  const group=new THREE.Group();
+  group.position.set(x,0,z);
+  group.rotation.y=rot;
+  parent.add(group);
+  for(let side=0;side<4;side++){
+    const wallFile=side===doorSide?"cabin-doorway.glb":"cabin-wall.glb";
+    await addAsset(wallFile,group,[0,0,0],scale,null,side*Math.PI/2);
+  }
+  await addAsset("cabin-roof-snow-point.glb",group,[0,scale,0],scale,null,0);
+  return group;
+}
+
+// A second cabin style built from the Fantasy Town Kit's own wood-wall
+// modules, for a bit of architectural variety among the houses.
+async function buildFantasyCabin(parent,x,z,scale,rot=0,doorSide=0){
+  const group=new THREE.Group();
+  group.position.set(x,0,z);
+  group.rotation.y=rot;
+  parent.add(group);
+  for(let side=0;side<4;side++){
+    const wallFile=side===doorSide?"fantasy/wall-wood-door.glb":"fantasy/wall-wood.glb";
+    await addAsset(wallFile,group,[0,0,0],scale,null,side*Math.PI/2);
+  }
+  await addAsset("fantasy/roof-point.glb",group,[0,scale,0],scale,null,0);
+  return group;
+}
+
 async function buildVillage(){
   if(location.protocol === 'file:'){ buildVillageFileFallback(); return; }
   // cabins
@@ -498,16 +531,17 @@ async function buildVillage(){
     [-.18,.40,.19,-.4],[.18,.42,.19,.4],[-.45,-.08,.20,.9]
   ];
   for(const [x,z,s,r] of cabinSpots){
-    try{await addAsset("cabin-wall-roof.glb",northPole,[x,0,z],s,null,r);}catch(e){addHouseFallback(x,z,s,null,r);}
+    try{await buildCabin(northPole,x,z,s,r,0);}catch(e){addHouseFallback(x,z,s,null,r);}
   }
+  await buildFantasyCabin(northPole,.344,-.241,.20,-2.0,0);
 
   const santa=mark(new THREE.Group(),...infos.santa); santa.position.set(-.05,0,-.02); northPole.add(santa);
-  await addAsset("cabin-wall-roof.glb",santa,[0,0,0],.34,null,0);
+  await buildCabin(santa,0,0,.34,0,0);
   const santaTree=await addAsset("tree-decorated-snow.glb",santa,[.20,0,.03],.10,null,.2);
   santaTree.userData.info=infos.tree; clickable.push(santaTree);
 
   const factory=mark(new THREE.Group(),...infos.factory); factory.position.set(.42,0,-.02); northPole.add(factory);
-  await addAsset("cabin-wall-roof.glb",factory,[0,0,0],.31,null,-.2);
+  await buildCabin(factory,0,0,.31,-.2,0);
   // factory chimneys and glowing windows
   for(const x of [-.09,.09]){
     const ch=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,.16,12),redMat);
@@ -519,11 +553,11 @@ async function buildVillage(){
   }
 
   const elf=mark(new THREE.Group(),...infos.elves); elf.position.set(.02,0,-.40); northPole.add(elf);
-  await addAsset("cabin-wall-roof.glb",elf,[0,0,0],.24,null,.4);
+  await buildCabin(elf,0,0,.24,.4,0);
   await addAsset("present-a-cube.glb",elf,[.12,.10,.12],.055,null,0);
 
   const gifts=mark(new THREE.Group(),...infos.gifts); gifts.position.set(-.34,0,-.39); northPole.add(gifts);
-  await addAsset("cabin-wall-roof.glb",gifts,[0,0,0],.22,null,-.5);
+  await buildCabin(gifts,0,0,.22,-.5,0);
   for(let i=0;i<4;i++) await addAsset(i%2?"present-a-cube.glb":"present-a-cube.glb",gifts,[-.09+i*.06,.10,.11],.045,null,Math.random());
 
   const tree=mark(new THREE.Group(),...infos.tree); tree.position.set(.29,0,.31); northPole.add(tree);
@@ -587,15 +621,11 @@ async function buildVillage(){
   await addAsset("fantasy/fountain-round-detail.glb",northPole,[-.537,.09,-.310],.10,null,0);
   await addAsset("fantasy/stall.glb",northPole,[.155,0,.580],.14,null,-.6);
   await addAsset("fantasy/stall-red.glb",northPole,[-.048,0,.548],.13,null,.4);
-  await addAsset("fantasy/banner-red.glb",northPole,[.60,.18,.16],.12,null,-.3);
-  await addAsset("fantasy/banner-green.glb",northPole,[-.60,.18,.16],.12,null,.3);
   await addAsset("fantasy/rock-large.glb",northPole,[-.150,0,-.560],.15,null,.8);
-  await addAsset("fantasy/cart.glb",northPole,[.670,0,-.118],.13,null,-.9);
   await addAsset("platformer/sign.glb",northPole,[0,0,.66],.12,null,Math.PI);
   const flag=await addAsset("platformer/flag.glb",northPole,[.15,0,.64],.09,null,0);
   northPole.userData.flag=flag;
   await addAsset("platformer/mushrooms.glb",northPole,[.48,0,.50],.09,null,0);
-  await addAsset("platformer/rocks.glb",northPole,[.475,0,-.399],.13,null,1.2);
 
   // A few more "villagers" so the plaza feels inhabited, not just buildings.
   await addAsset("gingerbread-man.glb",northPole,[.16,0,-.24],.10,null,-.5);
@@ -680,11 +710,46 @@ canvas.addEventListener("pointerup",(e)=>{
   }
 });
 
+const hotspotFacts={
+  reindeer:[
+    "¡Los renos ya están en el gimnasio! Rudolph completó diez kilómetros. Los demás dicen que no cuenta porque iba volando.",
+    "El equipo de renos hizo una votación: Rudolph sigue siendo el capitán, aunque solo por la nariz.",
+    "Uno de los renos se comió el mapa de la ruta. Ahora vuelan de memoria."
+  ],
+  elves:[
+    "Los elfos trabajan a toda velocidad. Uno pidió café y recibió chocolate caliente. Dice que fue ascendido a gerente de felicidad.",
+    "Hay un elfo que solo envuelve regalos en forma de cubo. Nadie sabe por qué, pero es muy bueno en eso.",
+    "El turno nocturno de elfos canta villancicos para no dormirse. Funciona la mitad del tiempo."
+  ],
+  factory:[
+    "Producción al 98%. La máquina de envolver regalos se detuvo porque un elfo se quedó dormido encima.",
+    "La fábrica bate su récord cada año. Este año el secreto fue más música y menos siestas.",
+    "Un elfo propuso automatizar todo. Santa dijo que la magia no se automatiza."
+  ],
+  santa:[
+    "Santa está revisando la lista. Costa Rica está en la ruta especial y todavía está investigando si los tamales cuentan como refrigerio oficial.",
+    "Santa practica su 'Ho Ho Ho' todos los días frente al espejo. Dice que este año suena más grave.",
+    "La lista de Santa tiene una sección secreta para los que se portaron 'más o menos'."
+  ],
+  tree:[
+    "La plaza central es donde se encienden las luces. El árbol consume más energía que toda la fábrica, pero Santa dice que Navidad es Navidad.",
+    "El árbol se decora a mano cada año. Un elfo se ofreció voluntario para la punta y nunca bajó.",
+    "Las luces del árbol se ven desde el espacio. Los renos lo confirman en cada vuelo de práctica."
+  ],
+  train:[
+    "El tren polar lleva juguetes, chocolate y una cantidad sospechosa de galletas. La investigación continúa.",
+    "El maquinista jura que el tren nunca ha llegado tarde. Los elfos no están tan seguros.",
+    "El silbato del tren se escucha en toda la aldea. Es la señal oficial de que ya casi es Navidad."
+  ]
+};
 document.querySelectorAll(".hotspot").forEach(el=>{
+  const key=[...el.classList].find(c=>c.startsWith("hotspot-"))?.replace("hotspot-","");
   el.addEventListener("click",()=>{
+    const pool=hotspotFacts[key];
+    const text=pool?pool[Math.floor(Math.random()*pool.length)]:el.dataset.message;
     document.getElementById("messageIcon").textContent=el.querySelector("span").textContent;
     document.getElementById("messageTitle").textContent=el.dataset.title||"Información";
-    document.getElementById("messageText").textContent=el.dataset.message;
+    document.getElementById("messageText").textContent=text;
     showToast(`${el.querySelector("span").textContent} Información del Polo Norte`);
   });
 });
@@ -766,9 +831,9 @@ function popChatBubble(){
   bubble.textContent=chatLines[idx];
   bubble.classList.add("show");
   clearTimeout(bubble._hideTimer);
-  bubble._hideTimer=setTimeout(()=>bubble.classList.remove("show"),5600);
+  bubble._hideTimer=setTimeout(()=>bubble.classList.remove("show"),6600);
 }
-setInterval(popChatBubble,6200);
+setInterval(popChatBubble,7000);
 setTimeout(popChatBubble,1500);
 
 function countdown(){

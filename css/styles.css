@@ -203,47 +203,6 @@ main {
 
 .pin { color: var(--gold); }
 
-.chat-bubble {
-  position: absolute;
-  top: 21%;
-  left: 63%;
-  z-index: 6;
-  max-width: 220px;
-  padding: 10px 14px;
-  border-radius: 16px 16px 16px 4px;
-  background: #fff9ed;
-  color: #2a1c10;
-  font-family: Montserrat, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
-  line-height: 1.4;
-  text-align: left;
-  box-shadow: 0 10px 25px rgba(0,0,0,.28);
-  opacity: 0;
-  transform: translateY(8px) scale(.9);
-  transform-origin: bottom left;
-  transition: opacity .35s ease, transform .35s ease;
-  pointer-events: none;
-}
-
-.chat-bubble::after {
-  content: "";
-  position: absolute;
-  left: 14px;
-  bottom: -8px;
-  width: 0;
-  height: 0;
-  border: 8px solid transparent;
-  border-top-color: #fff9ed;
-  border-bottom: 0;
-  border-left: 0;
-}
-
-.chat-bubble.show {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
 .hotspot {
   position: absolute;
   z-index: 5;
@@ -618,14 +577,6 @@ footer {
   .north-label strong { font-size: 9px; }
   .north-label small { font-size: 7px; }
 
-  .chat-bubble {
-    top: 18%;
-    left: 60%;
-    max-width: 150px;
-    font-size: 9px;
-    padding: 8px 10px;
-  }
-
   .earth-hint { font-size: 8px; }
 
   .countdown { gap: 5px; }
@@ -635,4 +586,21 @@ footer {
 
   h1 { font-size: 48px; }
   .eyebrow { font-size: 13px; }
+}
+
+/* Villa 5 information markers */
+.hotspot { border-color: rgba(244,201,93,.8); background: rgba(6,16,28,.86); box-shadow: 0 0 22px rgba(244,201,93,.18); cursor:pointer; }
+.hotspot:hover { transform: translateY(-2px) scale(1.04); }
+.hotspot b { color: var(--gold-soft); letter-spacing: .9px; }
+.hotspot-tree { left: 78%; top: 27%; }
+.hotspot-train { left: 74%; top: 61%; }
+@media (max-width: 650px) {
+  .hotspot-tree { left: 76%; top: 28%; }
+  .hotspot-train { left: 73%; top: 61%; }
+}
+#earthScene::after {
+  content: "✦ VILLA DEL POLO NORTE ✦";
+  position:absolute; left:50%; bottom:46px; transform:translateX(-50%);
+  color:rgba(255,232,163,.68); font-family:Cinzel,serif; font-size:9px;
+  letter-spacing:2px; pointer-events:none;
 }

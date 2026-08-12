@@ -7,14 +7,14 @@
   <meta name="description" content="Una visita interactiva al Polo Norte desde Costa Rica. Cuenta regresiva para Navidad, fábrica de Santa y una Tierra 3D girando." />
   <title>Navidad desde Costa Rica · Aldea del Polo Norte</title>
   <link rel="stylesheet" href="css/styles.css" />
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
-    }
+<script>
+window.addEventListener("error", function(e){
+  if(e && e.message && e.message.includes("THREE")){
+    var l=document.getElementById("loading");
+    if(l) l.innerHTML="<div class='loader-snow'>⚠️</div><div>No se pudo cargar el motor 3D.</div><small>Comprueba que tienes Internet y recarga la página.</small>";
   }
-  </script>
+});
+</script>
 </head>
 <body>
   <div id="loading" class="loading">
@@ -42,7 +42,7 @@
   </header>
 
   <main>
-    <section id="earthScene" aria-label="Tierra 3D y Polo Norte">
+    <section id="earthScene" aria-label="Tierra 3D y Villa del Polo Norte">
       <canvas id="earthCanvas"></canvas>
 
       <div class="earth-glow"></div>
@@ -54,9 +54,23 @@
           <small>Centro de operaciones de Santa</small>
         </div>
       </div>
-
-      <div id="villageChatter" class="chat-bubble">
-        <span id="villageChatterText"></span>
+      <div class="hotspot hotspot-reindeer" data-message="¡Los renos ya están en el gimnasio! Rudolph completó diez kilómetros. Los demás dicen que no cuenta porque iba volando.">
+        <span>🦌</span><b>INFO</b>
+      </div>
+      <div class="hotspot hotspot-elves" data-message="Los elfos trabajan a toda velocidad. Uno pidió café y recibió chocolate caliente. Dice que fue ascendido a gerente de felicidad.">
+        <span>🧝</span><b>INFO</b>
+      </div>
+      <div class="hotspot hotspot-factory" data-message="Producción al 98%. La máquina de envolver regalos se detuvo porque un elfo se quedó dormido encima.">
+        <span>🎁</span><b>INFO</b>
+      </div>
+      <div class="hotspot hotspot-santa" data-message="Santa está revisando la lista. Costa Rica está en la ruta especial y todavía está investigando si los tamales cuentan como refrigerio oficial.">
+        <span>🎅</span><b>INFO</b>
+      </div>
+      <div class="hotspot hotspot-tree" data-message="La plaza central es donde se encienden las luces. El árbol consume más energía que toda la fábrica, pero Santa dice que Navidad es Navidad.">
+        <span>🎄</span><b>INFO</b>
+      </div>
+      <div class="hotspot hotspot-train" data-message="El tren polar lleva juguetes, chocolate y una cantidad sospechosa de galletas. La investigación continúa.">
+        <span>🚂</span><b>INFO</b>
       </div>
 
       <div class="earth-hint">
@@ -117,7 +131,511 @@
   </div>
 
   <div id="toast" class="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
+function startApp(){
+const THREE = window.THREE;
+const OrbitControls = window.THREE.OrbitControls;
+const GLTFLoader = window.THREE.GLTFLoader;
 
-  <script type="module" src="js/app.js"></script>
+const canvas = document.getElementById("earthCanvas");
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
+camera.position.set(0, 0.32, 4.35);
+
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:"high-performance"});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.12;
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.enablePan = false;
+controls.minDistance = 3.0;
+controls.maxDistance = 5.6;
+controls.target.set(0, 0.22, 0);
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.28;
+
+scene.add(new THREE.AmbientLight(0x9fc5ff, 0.25));
+const sun = new THREE.DirectionalLight(0xffffff, 3.25);
+sun.position.set(4, 5, 5);
+scene.add(sun);
+const rim = new THREE.DirectionalLight(0x5d8fff, 0.42);
+rim.position.set(-4, 1, -5);
+scene.add(rim);
+
+const earthGroup = new THREE.Group();
+earthGroup.rotation.z = THREE.MathUtils.degToRad(-23.4);
+scene.add(earthGroup);
+
+const textureLoader = new THREE.TextureLoader();
+const earthTexture = textureLoader.load("https://threejs.org/examples/textures/planets/earth_atmos_2048.jpg");
+const earthBump = textureLoader.load("https://threejs.org/examples/textures/planets/earth_normal_2048.jpg");
+const earthSpec = textureLoader.load("https://threejs.org/examples/textures/planets/earth_specular_2048.jpg");
+const cloudsTexture = textureLoader.load("https://threejs.org/examples/textures/planets/earth_clouds_1024.png");
+
+const earth = new THREE.Mesh(
+  new THREE.SphereGeometry(1.42, 96, 96),
+  new THREE.MeshPhongMaterial({
+    map:earthTexture, bumpMap:earthBump, bumpScale:.035,
+    specularMap:earthSpec, specular:new THREE.Color(0x40546c), shininess:9
+  })
+);
+earthGroup.add(earth);
+
+const clouds = new THREE.Mesh(
+  new THREE.SphereGeometry(1.455, 96, 96),
+  new THREE.MeshPhongMaterial({map:cloudsTexture,transparent:true,opacity:.68,depthWrite:false})
+);
+earthGroup.add(clouds);
+
+const atmosphere = new THREE.Mesh(
+  new THREE.SphereGeometry(1.49, 96, 96),
+  new THREE.MeshBasicMaterial({
+    color:0x61b8ff,transparent:true,opacity:.13,
+    side:THREE.BackSide,blending:THREE.AdditiveBlending
+  })
+);
+earthGroup.add(atmosphere);
+
+// Star field - deliberately behind the Earth.
+const starGeo = new THREE.BufferGeometry();
+const starCount = 2200;
+const starPos = new Float32Array(starCount*3);
+for(let i=0;i<starCount;i++){
+  const r=18+Math.random()*30, theta=Math.random()*Math.PI*2, phi=Math.acos(2*Math.random()-1);
+  starPos[i*3]=r*Math.sin(phi)*Math.cos(theta);
+  starPos[i*3+1]=r*Math.cos(phi);
+  starPos[i*3+2]=r*Math.sin(phi)*Math.sin(theta);
+}
+starGeo.setAttribute("position",new THREE.BufferAttribute(starPos,3));
+scene.add(new THREE.Points(starGeo,new THREE.PointsMaterial({color:0xffffff,size:.04,sizeAttenuation:true,transparent:true,opacity:.9})));
+
+// Shooting stars, placed on the far side of the Earth (negative Z from the camera).
+const shootingStars=[];
+const shootingGroup=new THREE.Group();
+scene.add(shootingGroup);
+function makeShootingStar(i){
+  const g=new THREE.Group();
+  const len=.45+Math.random()*.6;
+  const geo=new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(0,0,0), new THREE.Vector3(-len,.05+Math.random()*.12,0)
+  ]);
+  const mat=new THREE.LineBasicMaterial({color:i%2?0xfff0bd:0xbfe7ff,transparent:true,opacity:0});
+  const line=new THREE.Line(geo,mat);
+  g.add(line);
+  g.position.set((Math.random()-.5)*7, (Math.random()-.1)*4.3, -7.5-Math.random()*3);
+  g.rotation.z=-.18-Math.random()*.45;
+  g.userData={phase:Math.random()*8,delay:Math.random()*6,duration:1.1+Math.random()*.8};
+  shootingGroup.add(g); shootingStars.push(g);
+}
+for(let i=0;i<10;i++) makeShootingStar(i);
+
+function animateShootingStars(t){
+  shootingStars.forEach((g)=>{
+    const d=g.userData, cycle=d.delay+d.duration+5;
+    const p=(t+d.phase)%cycle;
+    let a=0;
+    if(p>d.delay && p<d.delay+d.duration){
+      const q=(p-d.delay)/d.duration;
+      a=q<.18?q/.18:(1-(q-.18)/.82);
+      g.position.x += .012;
+      g.position.y -= .004;
+    }
+    g.children[0].material.opacity=Math.max(0,a)*.9;
+  });
+}
+
+// North Pole village
+const northPole=new THREE.Group();
+northPole.position.set(0,1.40,0);
+earthGroup.add(northPole);
+
+const snowMat=new THREE.MeshStandardMaterial({color:0xf8fbff,roughness:.92});
+const goldMat=new THREE.MeshStandardMaterial({color:0xd6a23b,metalness:.25,roughness:.4});
+const redMat=new THREE.MeshStandardMaterial({color:0xa92732,roughness:.78});
+const greenMat=new THREE.MeshStandardMaterial({color:0x1c7148,roughness:.82});
+const blueMat=new THREE.MeshStandardMaterial({color:0x3d77a4,roughness:.8});
+const warmMat=new THREE.MeshBasicMaterial({color:0xffd66b});
+
+const island=new THREE.Mesh(new THREE.CylinderGeometry(.72,.86,.10,64),snowMat);
+island.position.y=.04; northPole.add(island);
+const plaza=new THREE.Mesh(new THREE.CircleGeometry(.56,64),new THREE.MeshStandardMaterial({color:0xdfeaf2,roughness:1}));
+plaza.rotation.x=-Math.PI/2; plaza.position.y=.096; northPole.add(plaza);
+
+const clickable=[];
+function mark(group,icon,title,text){
+  group.userData.info={icon,title,text};
+  clickable.push(group);
+  return group;
+}
+const loader=new GLTFLoader();
+const cache=new Map();
+
+async function loadAsset(name){
+  if(cache.has(name)) return cache.get(name).clone(true);
+  const gltf=await loader.loadAsync(`assets/${name}`);
+  cache.set(name,gltf.scene);
+  return gltf.scene.clone(true);
+}
+
+function prepareModel(model, scale=1){
+  model.scale.setScalar(scale);
+  model.traverse(o=>{
+    if(o.isMesh){o.castShadow=false;o.receiveShadow=true;}
+  });
+  return model;
+}
+
+async function addAsset(name, parent, pos, scale, info, rotY=0){
+  const model=prepareModel(await loadAsset(name),scale);
+  model.position.set(...pos); model.rotation.y=rotY;
+  parent.add(model);
+  if(info) mark(model,...info);
+  return model;
+}
+
+function addHouseFallback(x,z,s,info,rot=0){
+  const g=info?mark(new THREE.Group(),...info):new THREE.Group();
+  const body=new THREE.Mesh(new THREE.BoxGeometry(.20*s,.18*s,.16*s),redMat);
+  body.position.y=.18*s; g.add(body);
+  const roof=new THREE.Mesh(new THREE.ConeGeometry(.16*s,.17*s,4),snowMat);
+  roof.position.y=.36*s; roof.rotation.y=Math.PI/4; g.add(roof);
+  g.position.set(x,0,z); g.rotation.y=rot; northPole.add(g);
+}
+
+
+// Offline/file:// compatibility: browsers do not allow GLTFLoader to fetch local
+// .glb files from file://. In that case we build a lightweight 3D version locally.
+// GitHub Pages / localhost continue to use the Kenney GLB assets.
+function buildVillageFileFallback(){
+  const box=(w,h,d,mat,y)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),mat);m.position.y=y;return m;};
+  const cone=(r,h,mat,y)=>{const m=new THREE.Mesh(new THREE.ConeGeometry(r,h,8),mat);m.position.y=y;return m;};
+  function house(x,z,s,info,bodyMat,roofMat){
+    const g=mark(new THREE.Group(),...info); g.position.set(x,0,z);
+    g.add(box(.20*s,.18*s,.17*s,bodyMat,.18*s));
+    const r=cone(.17*s,.18*s,roofMat,.36*s); r.rotation.y=Math.PI/4; g.add(r);
+    const door=box(.045*s,.08*s,.01*s,woodMat,.16*s); door.position.z=.09*s; g.add(door);
+    const w1=box(.035*s,.035*s,.01*s,warmMat,.24*s); w1.position.x=-.06*s;w1.position.z=.09*s;g.add(w1);
+    const w2=w1.clone();w2.position.x=.06*s;g.add(w2);
+    northPole.add(g); return g;
+  }
+  const woodMat=new THREE.MeshStandardMaterial({color:0x70421f,roughness:.9});
+  const wallCream=new THREE.MeshStandardMaterial({color:0xf0d39a,roughness:.82});
+  const wallBlue=new THREE.MeshStandardMaterial({color:0x477fa9,roughness:.82});
+  const wallRed=new THREE.MeshStandardMaterial({color:0x9e2933,roughness:.82});
+  const roofRed=new THREE.MeshStandardMaterial({color:0xb92b35,roughness:.78});
+  const roofGreen=new THREE.MeshStandardMaterial({color:0x236c4b,roughness:.78});
+  const green=new THREE.MeshStandardMaterial({color:0x1d754b,roughness:.86});
+  const dark=new THREE.MeshStandardMaterial({color:0x1c2632,roughness:.75});
+  house(-.46,-.20,.95,infos.gifts,wallBlue,roofRed);
+  house(-.47,.13,.85,infos.elves,wallCream,roofGreen);
+  house(.46,-.18,.95,infos.factory,wallRed,roofGreen);
+  house(.43,.18,.82,infos.santa,wallCream,roofRed);
+  house(-.18,.40,.72,infos.tree,wallRed,roofGreen);
+  house(.18,.42,.72,infos.tree,wallBlue,roofRed);
+
+  const santa=mark(new THREE.Group(),...infos.santa); santa.position.set(-.05,0,-.02); northPole.add(santa);
+  const lodge=box(.36,.30,.30,wallRed,.22); santa.add(lodge);
+  const sr=cone(.27,.24,snowMat,.49); sr.rotation.y=Math.PI/4;santa.add(sr);
+  const star=new THREE.Mesh(new THREE.OctahedronGeometry(.07),new THREE.MeshBasicMaterial({color:0xffd65b}));star.position.y=.70;santa.add(star);
+
+  const factory=mark(new THREE.Group(),...infos.factory);factory.position.set(.40,0,-.02);northPole.add(factory);
+  factory.add(box(.40,.27,.28,wallBlue,.22));
+  const fr=cone(.28,.20,roofRed,.46);fr.rotation.y=Math.PI/4;factory.add(fr);
+  for(const x of [-.09,.09]){const ch=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,.16,10),wallRed);ch.position.set(x,.52,0);factory.add(ch);}
+  for(let i=0;i<3;i++){const w=box(.04,.04,.01,warmMat,.22);w.position.set(-.09+i*.09,.22,.145);factory.add(w);}
+
+  const elves=mark(new THREE.Group(),...infos.elves);elves.position.set(.02,0,-.40);northPole.add(elves);
+  elves.add(box(.28,.22,.24,wallCream,.20));const er=cone(.21,.20,roofGreen,.41);er.rotation.y=Math.PI/4;elves.add(er);
+  const elfHat=cone(.055,.12,roofRed,.38);elfHat.position.x=.08;elves.add(elfHat);
+
+  const gifts=mark(new THREE.Group(),...infos.gifts);gifts.position.set(-.34,0,-.39);northPole.add(gifts);
+  gifts.add(box(.30,.20,.25,wallRed,.20));const gr=cone(.22,.18,roofGreen,.39);gr.rotation.y=Math.PI/4;gifts.add(gr);
+  for(let i=0;i<4;i++){const p=box(.06,.06,.06,i%2?roofRed:goldMat,.11);p.position.set(-.10+i*.07,.0,.12);gifts.add(p);}
+
+  const tree=mark(new THREE.Group(),...infos.tree);tree.position.set(.29,0,.31);northPole.add(tree);
+  for(let i=0;i<4;i++){const t=new THREE.Mesh(new THREE.ConeGeometry(.15-i*.02,.20,16),green);t.position.y=.19+i*.13;tree.add(t);}
+  const ts=new THREE.Mesh(new THREE.OctahedronGeometry(.05),new THREE.MeshBasicMaterial({color:0xffd65b}));ts.position.y=.76;tree.add(ts);
+
+  const reindeer=mark(new THREE.Group(),...infos.reindeer);reindeer.position.set(-.43,0,.34);northPole.add(reindeer);
+  const track=new THREE.Mesh(new THREE.TorusGeometry(.18,.018,8,40),goldMat);track.rotation.x=Math.PI/2;track.position.y=.11;reindeer.add(track);
+  for(let i=0;i<3;i++){
+    const d=new THREE.Group();const body=new THREE.Mesh(new THREE.SphereGeometry(.045,10,8),woodMat);body.scale.set(1.5,.75,.7);body.position.y=.19;d.add(body);
+    const head=new THREE.Mesh(new THREE.SphereGeometry(.027,10,8),woodMat);head.position.set(.07,.22,0);d.add(head);
+    d.position.set(Math.cos(i*2.1)*.14,.0,Math.sin(i*2.1)*.14);reindeer.add(d);mark(d,...infos.reindeer);
+  }
+
+  const sled=mark(new THREE.Group(),...infos.sled);sled.position.set(-.14,0,.34);northPole.add(sled);
+  const seat=box(.13,.04,.06,woodMat,.14);sled.add(seat);
+  const runners=new THREE.Mesh(new THREE.TorusGeometry(.08,.008,8,24,Math.PI),woodMat);runners.rotation.z=Math.PI/2;runners.position.y=.08;sled.add(runners);
+
+  const snowman=mark(new THREE.Group(),"☃️","Muñeco de nieve","Está vigilando la entrada. Afirma que vio a un elfo comerse tres galletas y tiene pruebas.");snowman.position.set(.54,0,.33);northPole.add(snowman);
+  const b1=new THREE.Mesh(new THREE.SphereGeometry(.08,16,12),snowMat);b1.position.y=.10;snowman.add(b1);
+  const b2=new THREE.Mesh(new THREE.SphereGeometry(.06,16,12),snowMat);b2.position.y=.21;snowman.add(b2);
+
+  for(const x of [-.62,.62]){const c=new THREE.Mesh(new THREE.TorusGeometry(.045,.012,8,16),roofRed);c.rotation.x=Math.PI/2;c.position.set(x,.12,.02);northPole.add(c);}
+
+  const rail=new THREE.Mesh(new THREE.TorusGeometry(.60,.013,8,96),new THREE.MeshStandardMaterial({color:0x57504a,roughness:.9}));rail.rotation.x=Math.PI/2;rail.position.y=.11;northPole.add(rail);
+  const train=mark(new THREE.Group(),...infos.train);northPole.add(train);
+  const loco=new THREE.Group();loco.add(box(.13,.08,.07,wallRed,.18));const cab=box(.07,.09,.07,wallBlue,.25);cab.position.x=-.04;loco.add(cab);const stack=new THREE.Mesh(new THREE.CylinderGeometry(.018,.022,.06,10),dark);stack.position.set(.045,.25,0);loco.add(stack);loco.userData.info=infos.train;clickable.push(loco);train.add(loco);train.userData.loco=loco;
+
+  for(let i=0;i<6;i++){const a=i*Math.PI/3;const lamp=new THREE.Group();const pole=new THREE.Mesh(new THREE.CylinderGeometry(.008,.012,.16,8),woodMat);pole.position.y=.15;lamp.add(pole);const light=new THREE.Mesh(new THREE.SphereGeometry(.025,12,8),warmMat);light.position.y=.25;lamp.add(light);lamp.position.set(Math.cos(a)*.52,0,Math.sin(a)*.52);northPole.add(lamp);}
+  const tower=mark(new THREE.Group(),"⭐","Torre de la Estrella","La torre coordina todas las operaciones. Si la estrella parpadea tres veces, significa que la Navidad está muy cerca.");tower.position.set(.03,0,.05);northPole.add(tower);
+  const tb=box(.10,.38,.10,goldMat,.28);tower.add(tb);const tr=cone(.095,.15,roofRed,.55);tower.add(tr);const st=new THREE.Mesh(new THREE.OctahedronGeometry(.055),new THREE.MeshBasicMaterial({color:0xffd65b}));st.position.y=.68;tower.add(st);
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.50,.006,8,80),new THREE.MeshBasicMaterial({color:0xffd65b,transparent:true,opacity:.65}));ring.rotation.x=Math.PI/2;ring.position.y=.72;northPole.add(ring);northPole.userData.ring=ring;northPole.userData.train=train;
+}
+
+// Build the detailed village with Kenney GLB assets.
+const infos={
+ santa:["🎅","Casa de Santa","Santa está revisando la lista. Dice que Costa Rica está en la ruta especial... y preguntó si los tamales cuentan como refrigerio oficial."],
+ factory:["🎁","Fábrica de juguetes","Producción al 98%. La máquina de envolver regalos se detuvo porque un elfo se quedó dormido encima. Recursos Humanos ya está investigando."],
+ elves:["🧝","Taller de los elfos","Los elfos trabajan a toda velocidad. Uno pidió café y recibió chocolate caliente. Dice que fue ascendido a gerente de felicidad."],
+ reindeer:["🦌","Gimnasio de renos","Rudolph completó diez kilómetros. Los otros renos dicen que no cuenta porque iba volando."],
+ train:["🚂","Tren navideño","El tren polar está listo. El maquinista reporta que una galleta desapareció misteriosamente durante la prueba."],
+ tree:["🎄","Plaza de Navidad","Las luces del árbol consumen más energía que toda la fábrica. Santa dice que Navidad es Navidad."],
+ gifts:["📦","Almacén de regalos","Todos los regalos pasaron la inspección. Uno decía 'para el próximo año'. El elfo responsable está en capacitación."],
+ sled:["🛷","Pista de trineos","El equipo de logística está probando rutas. Santa pidió que nadie vuelva a estacionar el trineo frente a la fábrica."]
+};
+
+async function buildVillage(){
+  if(location.protocol === 'file:'){ buildVillageFileFallback(); return; }
+  // cabins
+  const cabinSpots=[
+    [-.46,-.20,.24,0x0],[-.47,.13,.22,1.1],[.46,-.18,.24,-.5],[.43,.18,.21,.7],
+    [-.18,.40,.19,-.4],[.18,.42,.19,.4]
+  ];
+  for(const [x,z,s,r] of cabinSpots){
+    try{await addAsset("cabin-wall-roof.glb",northPole,[x,0,z],s,null,r);}catch(e){addHouseFallback(x,z,s,null,r);}
+  }
+
+  const santa=mark(new THREE.Group(),...infos.santa); santa.position.set(-.05,0,-.02); northPole.add(santa);
+  await addAsset("cabin-wall-roof.glb",santa,[0,0,0],.34,null,0);
+  const santaTree=await addAsset("tree-decorated-snow.glb",santa,[.20,0,.03],.10,null,.2);
+  santaTree.userData.info=infos.tree; clickable.push(santaTree);
+
+  const factory=mark(new THREE.Group(),...infos.factory); factory.position.set(.42,0,-.02); northPole.add(factory);
+  await addAsset("cabin-wall-roof.glb",factory,[0,0,0],.31,null,-.2);
+  // factory chimneys and glowing windows
+  for(const x of [-.09,.09]){
+    const ch=new THREE.Mesh(new THREE.CylinderGeometry(.025,.03,.16,12),redMat);
+    ch.position.set(x,.42,0); factory.add(ch);
+  }
+  for(let i=0;i<3;i++){
+    const p=new THREE.Mesh(new THREE.BoxGeometry(.035,.035,.008),warmMat);
+    p.position.set(-.08+i*.08,.22,.155); factory.add(p);
+  }
+
+  const elf=mark(new THREE.Group(),...infos.elves); elf.position.set(.02,0,-.40); northPole.add(elf);
+  await addAsset("cabin-wall-roof.glb",elf,[0,0,0],.24,null,.4);
+  await addAsset("present-a-cube.glb",elf,[.12,.10,.12],.055,null,0);
+
+  const gifts=mark(new THREE.Group(),...infos.gifts); gifts.position.set(-.34,0,-.39); northPole.add(gifts);
+  await addAsset("cabin-wall-roof.glb",gifts,[0,0,0],.22,null,-.5);
+  for(let i=0;i<4;i++) await addAsset(i%2?"present-a-cube.glb":"present-a-cube.glb",gifts,[-.09+i*.06,.10,.11],.045,null,Math.random());
+
+  const tree=mark(new THREE.Group(),...infos.tree); tree.position.set(.29,0,.31); northPole.add(tree);
+  await addAsset("tree-decorated-snow.glb",tree,[0,0,0],.22,null,0);
+
+  const reindeer=mark(new THREE.Group(),...infos.reindeer); reindeer.position.set(-.43,0,.34); northPole.add(reindeer);
+  const track=new THREE.Mesh(new THREE.TorusGeometry(.18,.018,8,40),goldMat); track.rotation.x=Math.PI/2; track.position.y=.11; reindeer.add(track);
+  for(let i=0;i<3;i++){
+    const d=await addAsset("reindeer.glb",reindeer,[Math.cos(i*2.1)*.14,.10,Math.sin(i*2.1)*.14],.085,null,-i*2.1);
+    d.userData.info=infos.reindeer; clickable.push(d);
+  }
+
+  const sled=mark(new THREE.Group(),...infos.sled); sled.position.set(-.14,0,.34); northPole.add(sled);
+  await addAsset("sled.glb",sled,[0,.05,0],.12,null,.35);
+
+  const snowman=await addAsset("snowman.glb",northPole,[.54,0,.33],.09,["☃️","Muñeco de nieve","Está vigilando la entrada. Afirma que vio a un elfo comerse tres galletas y tiene pruebas."]);
+  clickable.push(snowman);
+
+  // Candy canes at the gate
+  for(const x of [-.62,.62]) await addAsset("candy-cane-red.glb",northPole,[x,.02,.02],.10,null,x<0?-.3:.3);
+
+  // Train track
+  const rail=new THREE.Mesh(new THREE.TorusGeometry(.60,.013,8,96),new THREE.MeshStandardMaterial({color:0x57504a,roughness:.9}));
+  rail.rotation.x=Math.PI/2; rail.position.y=.11; northPole.add(rail);
+  const train=mark(new THREE.Group(),...infos.train); northPole.add(train);
+  const loco=await addAsset("train-locomotive.glb",train,[.60,.12,0],.18,null,Math.PI/2);
+  loco.userData.info=infos.train; clickable.push(loco);
+  train.userData.loco=loco;
+
+  // Lamps
+  for(let i=0;i<6;i++){
+    const a=i*Math.PI/3;
+    const lamp=new THREE.Group();
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(.008,.012,.16,8),new THREE.MeshStandardMaterial({color:0x49392a}));
+    pole.position.y=.15; lamp.add(pole);
+    const light=new THREE.Mesh(new THREE.SphereGeometry(.025,12,8),warmMat); light.position.y=.25; lamp.add(light);
+    lamp.position.set(Math.cos(a)*.52,0,Math.sin(a)*.52); northPole.add(lamp);
+  }
+
+  // central tower made from primitives
+  const tower=mark(new THREE.Group(),"⭐","Torre de la Estrella","La torre coordina todas las operaciones de la aldea. Si la estrella parpadea tres veces, significa que la Navidad está muy cerca.");
+  tower.position.set(.03,0,.05); northPole.add(tower);
+  const tb=new THREE.Mesh(new THREE.CylinderGeometry(.055,.075,.38,16),goldMat); tb.position.y=.28;tower.add(tb);
+  const tr=new THREE.Mesh(new THREE.ConeGeometry(.095,.15,16),redMat); tr.position.y=.545;tower.add(tr);
+  const ts=new THREE.Mesh(new THREE.OctahedronGeometry(.055),new THREE.MeshBasicMaterial({color:0xffd65b}));ts.position.y=.67;tower.add(ts);
+
+  // gentle magic ring
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(.50,.006,8,80),new THREE.MeshBasicMaterial({color:0xffd65b,transparent:true,opacity:.65}));
+  ring.rotation.x=Math.PI/2;ring.position.y=.72;northPole.add(ring);
+  northPole.userData.ring=ring; northPole.userData.train=train;
+}
+
+const messages=[
+["🎄","Noticias de la fábrica","Los elfos están trabajando a toda velocidad. Uno pidió vacaciones y Santa le respondió: 'Después del 24 hablamos'. 😂"],
+["🦌","Reporte de los renos","Rudolph ya calentó. Los demás renos dicen que él se cree Fórmula 1 porque tiene nariz de emergencia."],
+["🎅","Santa reporta","Santa confirmó que Costa Rica está en la ruta. Todavía no confirma si habrá parada técnica para tamales."],
+["🧝","Alerta de elfos","Se encontró un elfo durmiendo dentro de una caja de regalos. Dice que estaba probando el aislamiento."],
+["🎁","Control de regalos","Todo listo. Un regalo apareció etiquetado como 'para alguien que se portó más o menos'. Nadie quiere reclamarlo."],
+["🚂","Tren polar","El tren salió con juguetes, chocolate y una cantidad sospechosa de galletas. La investigación continúa."]
+];
+
+function showMessage(index){
+  const m=messages[index%messages.length];
+  document.getElementById("messageIcon").textContent=m[0];
+  document.getElementById("messageTitle").textContent=m[1];
+  document.getElementById("messageText").textContent=m[2];
+}
+let messageIndex=0;
+document.getElementById("nextMessage").addEventListener("click",()=>{showMessage(++messageIndex);showToast("✨ Nueva noticia desde el Polo Norte");});
+
+function showToast(text){
+  const t=document.getElementById("toast");
+  t.textContent=text;t.classList.add("show");
+  clearTimeout(showToast.timer);showToast.timer=setTimeout(()=>t.classList.remove("show"),3600);
+}
+
+const raycaster=new THREE.Raycaster();
+const pointer=new THREE.Vector2();
+canvas.addEventListener("pointerup",(e)=>{
+  const rect=canvas.getBoundingClientRect();
+  pointer.x=((e.clientX-rect.left)/rect.width)*2-1;
+  pointer.y=-((e.clientY-rect.top)/rect.height)*2+1;
+  raycaster.setFromCamera(pointer,camera);
+  const hits=raycaster.intersectObjects(clickable,true);
+  if(!hits.length)return;
+  let o=hits[0].object;
+  while(o && !o.userData.info)o=o.parent;
+  if(o?.userData?.info){
+    const m=o.userData.info;
+    document.getElementById("messageIcon").textContent=m[0];
+    document.getElementById("messageTitle").textContent=m[1];
+    document.getElementById("messageText").textContent=m[2];
+    showToast(`${m[0]} ${m[1]}`);
+  }
+});
+
+document.querySelectorAll(".hotspot").forEach(el=>{
+  el.addEventListener("click",()=>{
+    document.getElementById("messageIcon").textContent=el.querySelector("span").textContent;
+    document.getElementById("messageTitle").textContent=el.dataset.title||"Información";
+    document.getElementById("messageText").textContent=el.dataset.message;
+    showToast(`${el.querySelector("span").textContent} Información del Polo Norte`);
+  });
+});
+
+document.getElementById("toggleRotate").addEventListener("click",()=>{
+  controls.autoRotate=!controls.autoRotate;
+  document.getElementById("toggleRotate").classList.toggle("active",controls.autoRotate);
+});
+document.getElementById("toggleAutoMessage").addEventListener("click",()=>{
+  messageAuto=!messageAuto;
+  document.getElementById("toggleAutoMessage").classList.toggle("active",messageAuto);
+});
+document.getElementById("toggleInfo").addEventListener("click",()=>document.getElementById("infoPanel").classList.remove("hidden"));
+document.getElementById("closeInfo").addEventListener("click",()=>document.getElementById("infoPanel").classList.add("hidden"));
+
+let messageAuto=true;
+setInterval(()=>{if(messageAuto)showMessage(++messageIndex)},8500);
+
+const polarFacts=[
+  "En el Polo Norte nadie pregunta qué día es. Todos saben que se acerca Navidad.",
+  "La fábrica tiene un departamento secreto dedicado exclusivamente a probar galletas.",
+  "Los renos tienen horario de gimnasio. Rudolph dice que él ya está listo desde octubre.",
+  "Santa tiene una ruta especial para Costa Rica. La logística la llama 'Operación Tamal'."
+];
+let fact=0;
+setInterval(()=>{fact++;document.getElementById("polarFact").textContent=polarFacts[fact%polarFacts.length]},6000);
+
+function countdown(){
+  const now=new Date();
+  const target=new Date(now.getFullYear(),11,25,0,0,0);
+  if(now>=target)target.setFullYear(now.getFullYear()+1);
+  const ms=target-now;
+  document.getElementById("days").textContent=Math.floor(ms/86400000);
+  document.getElementById("hours").textContent=String(Math.floor(ms%86400000/3600000)).padStart(2,"0");
+  document.getElementById("minutes").textContent=String(Math.floor(ms%3600000/60000)).padStart(2,"0");
+  document.getElementById("seconds").textContent=String(Math.floor(ms%60000/1000)).padStart(2,"0");
+}
+setInterval(countdown,1000);countdown();
+
+function resize(){
+  const r=canvas.parentElement.getBoundingClientRect();
+  const w=Math.max(1,r.width),h=Math.max(1,r.height);
+  renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();
+}
+window.addEventListener("resize",resize);resize();
+
+let loaded=false;
+buildVillage().then(()=>{
+  loaded=true;
+  document.getElementById("loading").classList.add("done");
+}).catch(err=>{
+  console.error("Villa GLB falló; usando modo compatible:", err);
+  try {
+    buildVillageFileFallback();
+    loaded=true;
+    document.getElementById("loading").classList.add("done");
+  } catch(fallbackErr) {
+    console.error("También falló el modo compatible:", fallbackErr);
+    document.getElementById("loading").innerHTML="<div class='loader-snow'>🎄</div><div>No se pudo iniciar la villa.</div><small>Abre la consola (F12) para ver el error.</small>";
+  }
+});
+
+const clock=new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const t=clock.getElapsedTime();
+  clouds.rotation.y=t*.008;
+  if(northPole.userData.ring)northPole.userData.ring.rotation.z=t*.25;
+  if(northPole.userData.train){
+    const tr=northPole.userData.train;
+    const loco=tr.userData.loco;
+    const a=t*.55;
+    loco.position.set(Math.cos(a)*.60,.12,Math.sin(a)*.60);
+    loco.rotation.y=-a+Math.PI/2;
+  }
+  animateShootingStars(t);
+  controls.update();
+  renderer.render(scene,camera);
+}
+animate();
+
+setTimeout(()=>{
+  const loading=document.getElementById("loading");
+  if(loading && !loading.classList.contains("done")){
+    loading.innerHTML="<div class='loader-snow'>🎄</div><div>La villa está tardando en despertar...</div><small>Si abriste el archivo con doble clic y Chrome bloquea recursos, usa abrir-local.bat o GitHub Pages.</small>";
+  }
+}, 12000);
+
+}
+
+if (!window.THREE || !window.THREE.OrbitControls || !window.THREE.GLTFLoader) {
+  document.getElementById("loading").innerHTML =
+    "<div class='loader-snow'>⚠️</div><div>No se pudo cargar Three.js.</div><small>Necesitas conexión a Internet para cargar el motor 3D.</small>";
+} else {
+  // In file:// mode, never request local .glb files: Chrome blocks those requests.
+  window.NAVIDAD_FILE_MODE = location.protocol === "file:";
+  startApp();
+}
+</script>
+
 </body>
 </html>

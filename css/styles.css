@@ -266,6 +266,12 @@ main {
 
 .chat-bubble.show { opacity: 1; }
 
+/* Fixed spots scattered around the globe, not tied to the village's 3D
+   position, so they stay readable no matter which way the world is rotated. */
+.chat-bubble-a { left: 20%; top: 28%; }
+.chat-bubble-b { left: 80%; top: 50%; }
+.chat-bubble-c { left: 40%; top: 76%; }
+
 .earth-hint {
   position: absolute;
   bottom: 18px;
@@ -601,9 +607,9 @@ footer {
   .hotspot-santa { left: 44%; top: 37%; }
 
   .chat-bubble { max-width: 130px; font-size: 9px; padding: 6px 9px; }
-  .chat-bubble-a { left: 50%; top: 21%; }
-  .chat-bubble-b { left: 61%; top: 24%; }
-  .chat-bubble-c { left: 56%; top: 16%; }
+  .chat-bubble-a { left: 18%; top: 26%; }
+  .chat-bubble-b { left: 82%; top: 48%; }
+  .chat-bubble-c { left: 42%; top: 74%; }
 
   .north-label {
     top: 9%;

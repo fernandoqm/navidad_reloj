@@ -37,6 +37,7 @@ window.addEventListener("error", function(e){
     <div class="top-actions">
       <button id="toggleAutoMessage" class="icon-btn" title="Activar/desactivar mensajes">💬</button>
       <button id="toggleRotate" class="icon-btn" title="Pausar/reanudar la Tierra">🌎</button>
+      <button id="toggleZoom" class="icon-btn" title="Acercar/alejar la villa">🔍</button>
       <button id="toggleInfo" class="icon-btn" title="Mostrar ayuda">?</button>
     </div>
   </header>
@@ -158,11 +159,39 @@ renderer.toneMappingExposure = 1.12;
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.enablePan = false;
-controls.minDistance = 3.0;
+controls.minDistance = 1.6;
 controls.maxDistance = 5.6;
 controls.target.set(0, 0.22, 0);
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.28;
+
+// Smooth camera fly-to used by the "acercar a la villa" button: moves both the
+// orbit target and the camera distance so the village stays centered instead
+// of drifting to the edge of the frame when zooming in.
+const defaultCamTarget=controls.target.clone();
+const defaultCamDistance=camera.position.distanceTo(defaultCamTarget);
+let camAnim=null;
+function flyTo(endTarget,endDistance,duration=1000){
+  camAnim={
+    startTarget:controls.target.clone(),
+    endTarget:endTarget.clone(),
+    startDistance:camera.position.distanceTo(controls.target),
+    endDistance,
+    dir:camera.position.clone().sub(controls.target).normalize(),
+    startTime:performance.now(),
+    duration
+  };
+}
+function updateCamAnim(){
+  if(!camAnim) return;
+  const p=Math.min(1,(performance.now()-camAnim.startTime)/camAnim.duration);
+  const ep=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+  const newTarget=new THREE.Vector3().lerpVectors(camAnim.startTarget,camAnim.endTarget,ep);
+  const newDistance=camAnim.startDistance+(camAnim.endDistance-camAnim.startDistance)*ep;
+  controls.target.copy(newTarget);
+  camera.position.copy(newTarget).add(camAnim.dir.clone().multiplyScalar(newDistance));
+  if(p>=1) camAnim=null;
+}
 
 scene.add(new THREE.AmbientLight(0x9fc5ff, 0.25));
 const sun = new THREE.DirectionalLight(0xffffff, 3.25);
@@ -623,6 +652,18 @@ document.getElementById("toggleAutoMessage").addEventListener("click",()=>{
   messageAuto=!messageAuto;
   document.getElementById("toggleAutoMessage").classList.toggle("active",messageAuto);
 });
+let villageZoomed=false;
+document.getElementById("toggleZoom").addEventListener("click",()=>{
+  villageZoomed=!villageZoomed;
+  document.getElementById("toggleZoom").classList.toggle("active",villageZoomed);
+  if(villageZoomed){
+    const villagePos=new THREE.Vector3();
+    northPole.getWorldPosition(villagePos);
+    flyTo(villagePos,1.9,1000);
+  } else {
+    flyTo(defaultCamTarget,defaultCamDistance,1000);
+  }
+});
 document.getElementById("toggleInfo").addEventListener("click",()=>document.getElementById("infoPanel").classList.remove("hidden"));
 document.getElementById("closeInfo").addEventListener("click",()=>document.getElementById("infoPanel").classList.add("hidden"));
 
@@ -658,9 +699,14 @@ const chatBubbles=[
   document.getElementById("chatBubbleC")
 ];
 
-// Hotspots and chat bubbles are anchored to real 3D points in the village
+// Hotspots are anchored to real 3D points in the village
 // (northPole.userData.landmarks) so they rotate with the world and hide
-// when the village is turned toward the far side of the globe.
+// when the village is turned toward the far side of the globe. They're
+// pushed out to a fixed radius around the village's screen position so
+// they don't overlap each other when the village renders small.
+// Chat bubbles are deliberately NOT 3D-anchored: they sit at fixed spots
+// around the globe so they're always visible, even when the village
+// itself has rotated out of view.
 const earthSceneEl=document.getElementById("earthScene");
 const hotspotMap={
   reindeer:document.querySelector(".hotspot-reindeer"),
@@ -670,7 +716,7 @@ const hotspotMap={
   tree:document.querySelector(".hotspot-tree"),
   train:document.querySelector(".hotspot-train")
 };
-const chatOffsets=[[-46,-24],[38,-38],[-4,-58]];
+const hotspotSpreadRadius=95;
 
 function projectLandmark(obj3D,rect){
   const world=new THREE.Vector3();
@@ -687,24 +733,19 @@ function projectLandmark(obj3D,rect){
 
 function updateOverlays(){
   const lm=northPole.userData.landmarks;
-  if(!lm) return;
+  if(!lm||!lm.tower) return;
   const rect=earthSceneEl.getBoundingClientRect();
+  const center=projectLandmark(lm.tower,rect);
   for(const key in hotspotMap){
     const el=hotspotMap[key], obj=lm[key];
     if(!el||!obj) continue;
     const p=projectLandmark(obj,rect);
-    el.style.left=p.x+"px";
-    el.style.top=p.y+"px";
+    let dx=p.x-center.x, dy=p.y-center.y;
+    const dist=Math.hypot(dx,dy)||1;
+    dx/=dist; dy/=dist;
+    el.style.left=(center.x+dx*hotspotSpreadRadius)+"px";
+    el.style.top=(center.y+dy*hotspotSpreadRadius)+"px";
     el.style.visibility=p.visible?"visible":"hidden";
-  }
-  if(lm.tower){
-    const ap=projectLandmark(lm.tower,rect);
-    chatBubbles.forEach((b,i)=>{
-      const off=chatOffsets[i];
-      b.style.left=(ap.x+off[0])+"px";
-      b.style.top=(ap.y+off[1])+"px";
-      b.style.visibility=ap.visible?"":"hidden";
-    });
   }
 }
 
@@ -772,6 +813,7 @@ function animate(){
   }
   animateShootingStars(t);
   updateBeacon(t);
+  updateCamAnim();
   controls.update();
   renderer.render(scene,camera);
   updateOverlays();

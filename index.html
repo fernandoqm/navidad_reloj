@@ -148,7 +148,7 @@ const GLTFLoader = window.THREE.GLTFLoader;
 const canvas = document.getElementById("earthCanvas");
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
-camera.position.set(0, 0.32, 4.35);
+camera.position.set(0, 0.56, 4.85);
 
 const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true, powerPreference:"high-performance"});
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -161,7 +161,7 @@ controls.enableDamping = true;
 controls.enablePan = false;
 controls.minDistance = 1.6;
 controls.maxDistance = 5.6;
-controls.target.set(0, 0.22, 0);
+controls.target.set(0, 0.45, 0);
 controls.autoRotate = true;
 controls.autoRotateSpeed = 0.28;
 
@@ -699,11 +699,11 @@ const chatBubbles=[
   document.getElementById("chatBubbleC")
 ];
 
-// Hotspots are anchored to real 3D points in the village
-// (northPole.userData.landmarks) so they rotate with the world and hide
-// when the village is turned toward the far side of the globe. They're
-// pushed out to a fixed radius around the village's screen position so
-// they don't overlap each other when the village renders small.
+// Hotspots are pinned to real lat/lon points scattered across the globe
+// (same technique as the Costa Rica beacon below) instead of the village's
+// own tiny footprint, so they read as "info pins over the world" and don't
+// pile up on top of each other. They rotate with the world and hide when
+// their point turns to the far side of the globe.
 // Chat bubbles are deliberately NOT 3D-anchored: they sit at fixed spots
 // around the globe so they're always visible, even when the village
 // itself has rotated out of view.
@@ -716,7 +716,21 @@ const hotspotMap={
   tree:document.querySelector(".hotspot-tree"),
   train:document.querySelector(".hotspot-train")
 };
-const hotspotSpreadRadius=95;
+const hotspotCoords={
+  reindeer:[67,27],   // Laponia, Finlandia
+  elves:[72,-40],     // Groenlandia
+  factory:[70,-100],  // norte de Canadá
+  santa:[78,16],      // Svalbard, Noruega
+  tree:[65,-18],      // Islandia
+  train:[66,100]      // Siberia, Rusia
+};
+const hotspotAnchors={};
+for(const key in hotspotCoords){
+  const anchor=new THREE.Object3D();
+  anchor.position.copy(latLonToVector3(hotspotCoords[key][0],hotspotCoords[key][1],1.46));
+  earthGroup.add(anchor);
+  hotspotAnchors[key]=anchor;
+}
 
 function projectLandmark(obj3D,rect){
   const world=new THREE.Vector3();
@@ -732,19 +746,13 @@ function projectLandmark(obj3D,rect){
 }
 
 function updateOverlays(){
-  const lm=northPole.userData.landmarks;
-  if(!lm||!lm.tower) return;
   const rect=earthSceneEl.getBoundingClientRect();
-  const center=projectLandmark(lm.tower,rect);
   for(const key in hotspotMap){
-    const el=hotspotMap[key], obj=lm[key];
-    if(!el||!obj) continue;
-    const p=projectLandmark(obj,rect);
-    let dx=p.x-center.x, dy=p.y-center.y;
-    const dist=Math.hypot(dx,dy)||1;
-    dx/=dist; dy/=dist;
-    el.style.left=(center.x+dx*hotspotSpreadRadius)+"px";
-    el.style.top=(center.y+dy*hotspotSpreadRadius)+"px";
+    const el=hotspotMap[key], anchor=hotspotAnchors[key];
+    if(!el||!anchor) continue;
+    const p=projectLandmark(anchor,rect);
+    el.style.left=p.x+"px";
+    el.style.top=p.y+"px";
     el.style.visibility=p.visible?"visible":"hidden";
   }
 }

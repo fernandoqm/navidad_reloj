@@ -203,6 +203,47 @@ main {
 
 .pin { color: var(--gold); }
 
+.chat-bubble {
+  position: absolute;
+  top: 21%;
+  left: 63%;
+  z-index: 6;
+  max-width: 220px;
+  padding: 10px 14px;
+  border-radius: 16px 16px 16px 4px;
+  background: #fff9ed;
+  color: #2a1c10;
+  font-family: Montserrat, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-align: left;
+  box-shadow: 0 10px 25px rgba(0,0,0,.28);
+  opacity: 0;
+  transform: translateY(8px) scale(.9);
+  transform-origin: bottom left;
+  transition: opacity .35s ease, transform .35s ease;
+  pointer-events: none;
+}
+
+.chat-bubble::after {
+  content: "";
+  position: absolute;
+  left: 14px;
+  bottom: -8px;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+  border-top-color: #fff9ed;
+  border-bottom: 0;
+  border-left: 0;
+}
+
+.chat-bubble.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 .hotspot {
   position: absolute;
   z-index: 5;
@@ -576,6 +617,14 @@ footer {
 
   .north-label strong { font-size: 9px; }
   .north-label small { font-size: 7px; }
+
+  .chat-bubble {
+    top: 18%;
+    left: 60%;
+    max-width: 150px;
+    font-size: 9px;
+    padding: 8px 10px;
+  }
 
   .earth-hint { font-size: 8px; }
 

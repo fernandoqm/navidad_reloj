@@ -217,22 +217,54 @@ main {
   font-size: 10px;
   cursor: pointer;
   backdrop-filter: blur(8px);
-  transition: .25s ease;
+  /* left/top are updated every frame in JS to track the 3D village as it
+     rotates with the world; only cosmetic properties transition here so
+     the badge doesn't lag behind its target position. */
+  transition: background .25s ease, border-color .25s ease, box-shadow .25s ease, transform .2s ease;
   box-shadow: 0 0 18px rgba(244,201,93,.08);
+  transform: translate(-50%, -100%);
 }
 
 .hotspot span { font-size: 16px; }
 
 .hotspot:hover {
-  transform: scale(1.07);
+  transform: translate(-50%, -100%) scale(1.07);
   background: rgba(118, 29, 37, .88);
   border-color: var(--gold);
 }
 
-.hotspot-reindeer { left: 57%; top: 27%; }
-.hotspot-elves { left: 68%; top: 39%; }
-.hotspot-factory { left: 73%; top: 51%; }
-.hotspot-santa { left: 48%; top: 40%; }
+.chat-bubble {
+  position: absolute;
+  z-index: 6;
+  max-width: 180px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: rgba(255,251,240,.96);
+  color: #2a2013;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: center;
+  box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  opacity: 0;
+  /* left/top track the village tower every frame in JS; only opacity
+     transitions so the bubble doesn't lag behind its anchor. */
+  transform: translate(-50%, -100%);
+  transition: opacity .35s ease;
+  pointer-events: none;
+}
+
+.chat-bubble::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -7px;
+  transform: translateX(-50%);
+  border: 7px solid transparent;
+  border-top-color: rgba(255,251,240,.96);
+}
+
+.chat-bubble.show { opacity: 1; }
 
 .earth-hint {
   position: absolute;
@@ -567,6 +599,11 @@ footer {
   .hotspot-elves { left: 66%; top: 36%; }
   .hotspot-factory { left: 69%; top: 48%; }
   .hotspot-santa { left: 44%; top: 37%; }
+
+  .chat-bubble { max-width: 130px; font-size: 9px; padding: 6px 9px; }
+  .chat-bubble-a { left: 50%; top: 21%; }
+  .chat-bubble-b { left: 61%; top: 24%; }
+  .chat-bubble-c { left: 56%; top: 16%; }
 
   .north-label {
     top: 9%;

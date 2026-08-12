@@ -78,6 +78,10 @@ window.addEventListener("error", function(e){
         <span>•</span>
         <span>La Tierra gira sola</span>
       </div>
+
+      <div class="chat-bubble chat-bubble-a" id="chatBubbleA"></div>
+      <div class="chat-bubble chat-bubble-b" id="chatBubbleB"></div>
+      <div class="chat-bubble chat-bubble-c" id="chatBubbleC"></div>
     </section>
 
     <aside class="dashboard">
@@ -233,11 +237,11 @@ function makeShootingStar(i){
   g.userData={phase:Math.random()*8,delay:Math.random()*6,duration:1.1+Math.random()*.8};
   shootingGroup.add(g); shootingStars.push(g);
 }
-for(let i=0;i<10;i++) makeShootingStar(i);
+for(let i=0;i<16;i++) makeShootingStar(i);
 
 function animateShootingStars(t){
   shootingStars.forEach((g)=>{
-    const d=g.userData, cycle=d.delay+d.duration+5;
+    const d=g.userData, cycle=d.delay+d.duration+2.2;
     const p=(t+d.phase)%cycle;
     let a=0;
     if(p>d.delay && p<d.delay+d.duration){
@@ -246,13 +250,14 @@ function animateShootingStars(t){
       g.position.x += .012;
       g.position.y -= .004;
     }
-    g.children[0].material.opacity=Math.max(0,a)*.9;
+    g.children[0].material.opacity=Math.max(0,a);
   });
 }
 
 // North Pole village
 const northPole=new THREE.Group();
 northPole.position.set(0,1.40,0);
+northPole.scale.setScalar(.5);
 earthGroup.add(northPole);
 
 const snowMat=new THREE.MeshStandardMaterial({color:0xf8fbff,roughness:.92});
@@ -388,6 +393,7 @@ function buildVillageFileFallback(){
   const tower=mark(new THREE.Group(),"⭐","Torre de la Estrella","La torre coordina todas las operaciones. Si la estrella parpadea tres veces, significa que la Navidad está muy cerca.");tower.position.set(.03,0,.05);northPole.add(tower);
   const tb=box(.10,.38,.10,goldMat,.28);tower.add(tb);const tr=cone(.095,.15,roofRed,.55);tower.add(tr);const st=new THREE.Mesh(new THREE.OctahedronGeometry(.055),new THREE.MeshBasicMaterial({color:0xffd65b}));st.position.y=.68;tower.add(st);
   const ring=new THREE.Mesh(new THREE.TorusGeometry(.50,.006,8,80),new THREE.MeshBasicMaterial({color:0xffd65b,transparent:true,opacity:.65}));ring.rotation.x=Math.PI/2;ring.position.y=.72;northPole.add(ring);northPole.userData.ring=ring;northPole.userData.train=train;
+  northPole.userData.landmarks={santa,factory,elves,gifts,tree,reindeer,train,tower};
 }
 
 // Build the detailed village with Kenney GLB assets.
@@ -486,6 +492,7 @@ async function buildVillage(){
   const ring=new THREE.Mesh(new THREE.TorusGeometry(.50,.006,8,80),new THREE.MeshBasicMaterial({color:0xffd65b,transparent:true,opacity:.65}));
   ring.rotation.x=Math.PI/2;ring.position.y=.72;northPole.add(ring);
   northPole.userData.ring=ring; northPole.userData.train=train;
+  northPole.userData.landmarks={santa,factory,elves:elf,gifts,tree,reindeer,train,tower};
 }
 
 const messages=[
@@ -564,6 +571,90 @@ const polarFacts=[
 let fact=0;
 setInterval(()=>{fact++;document.getElementById("polarFact").textContent=polarFacts[fact%polarFacts.length]},6000);
 
+const chatLines=[
+  "🧝 «¿Otra vez galletas de desayuno?» 🎅 «Es tradición.»",
+  "🦌 «Rudolph, bájale a la velocidad.» 🦌 «Jamás.»",
+  "☃️ «¿Alguien vio mi nariz?» 🧝 «Está en la ensalada.»",
+  "🧝 «Turno doble hoy.» 🧝 «Otra vez no…»",
+  "🎅 «¿Ya envolviste los regalos?» 🧝 «\"Envolver\" es un término amplio.»",
+  "🧝 «Le puse chocolate al café de Santa.» 🧝 «Eso explica el abrazo.»",
+  "🦌 «¿Practicamos el aterrizaje?» 🦌 «Prefiero improvisar.»",
+  "🧝 «El elfo nuevo cree que Excel es magia negra.» 🧝 «Tiene razón.»",
+  "☃️ «Hace frío.» 🧝 «Eres de nieve.» ☃️ «Aun así.»",
+  "🎅 «¿Costa Rica confirmó los tamales?» 🧝 «Investigación en curso.»",
+  "🧝 «¿Quién dejó galletas a medio comer?» 🦌 «Fue el reno.» 🦌 «Mentira.»",
+  "🎅 «Necesito más café.» 🧝 «Necesitas más elfos.»"
+];
+const chatBubbles=[
+  document.getElementById("chatBubbleA"),
+  document.getElementById("chatBubbleB"),
+  document.getElementById("chatBubbleC")
+];
+
+// Hotspots and chat bubbles are anchored to real 3D points in the village
+// (northPole.userData.landmarks) so they rotate with the world and hide
+// when the village is turned toward the far side of the globe.
+const earthSceneEl=document.getElementById("earthScene");
+const hotspotMap={
+  reindeer:document.querySelector(".hotspot-reindeer"),
+  elves:document.querySelector(".hotspot-elves"),
+  factory:document.querySelector(".hotspot-factory"),
+  santa:document.querySelector(".hotspot-santa"),
+  tree:document.querySelector(".hotspot-tree"),
+  train:document.querySelector(".hotspot-train")
+};
+const chatOffsets=[[-46,-24],[38,-38],[-4,-58]];
+
+function projectLandmark(obj3D,rect){
+  const world=new THREE.Vector3();
+  obj3D.getWorldPosition(world);
+  const ndc=world.clone().project(camera);
+  const outward=world.clone().normalize();
+  const toCam=camera.position.clone().sub(world).normalize();
+  return{
+    x:(ndc.x*.5+.5)*rect.width,
+    y:(1-(ndc.y*.5+.5))*rect.height,
+    visible: ndc.z<1 && outward.dot(toCam)>.05
+  };
+}
+
+function updateOverlays(){
+  const lm=northPole.userData.landmarks;
+  if(!lm) return;
+  const rect=earthSceneEl.getBoundingClientRect();
+  for(const key in hotspotMap){
+    const el=hotspotMap[key], obj=lm[key];
+    if(!el||!obj) continue;
+    const p=projectLandmark(obj,rect);
+    el.style.left=p.x+"px";
+    el.style.top=p.y+"px";
+    el.style.visibility=p.visible?"visible":"hidden";
+  }
+  if(lm.tower){
+    const ap=projectLandmark(lm.tower,rect);
+    chatBubbles.forEach((b,i)=>{
+      const off=chatOffsets[i];
+      b.style.left=(ap.x+off[0])+"px";
+      b.style.top=(ap.y+off[1])+"px";
+      b.style.visibility=ap.visible?"":"hidden";
+    });
+  }
+}
+
+let lastChatLine=-1;
+function popChatBubble(){
+  const bubble=chatBubbles[Math.floor(Math.random()*chatBubbles.length)];
+  let idx=Math.floor(Math.random()*chatLines.length);
+  if(idx===lastChatLine) idx=(idx+1)%chatLines.length;
+  lastChatLine=idx;
+  bubble.textContent=chatLines[idx];
+  bubble.classList.add("show");
+  clearTimeout(bubble._hideTimer);
+  bubble._hideTimer=setTimeout(()=>bubble.classList.remove("show"),3400);
+}
+setInterval(popChatBubble,3900);
+setTimeout(popChatBubble,1500);
+
 function countdown(){
   const now=new Date();
   const target=new Date(now.getFullYear(),11,25,0,0,0);
@@ -615,6 +706,7 @@ function animate(){
   animateShootingStars(t);
   controls.update();
   renderer.render(scene,camera);
+  updateOverlays();
 }
 animate();
 
